@@ -1,0 +1,3 @@
+import {NodeIO} from '@gltf-transform/core';import {textureCompress,prune,dedup} from '@gltf-transform/functions';import sharp from 'sharp';
+const io=new NodeIO();const S='/tmp/itch/sci-fi-essentials-kit/glTF/';
+for(const n of['Gun_Rifle','Gun_SMG','Gun_Pistol','Prop_Crate','Prop_Crate_Large','Prop_Barrel1','Prop_Locker','Prop_Desk_Medium','Prop_Chair','Prop_Ammo','Prop_Shelves_WideTall','Prop_Crate_Tarp_Large','Prop_HealthPack']){try{const d=await io.read(S+n+'.gltf');await d.transform(dedup(),prune(),textureCompress({encoder:sharp,targetFormat:'webp',resize:[512,512],quality:80}));await io.write('public/models/'+n.toLowerCase()+'.glb',d)}catch(e){console.log(n,e.message)}}

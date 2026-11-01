@@ -1,0 +1,15 @@
+<!doctype html><html><head><style>body{margin:0;background:#000}canvas{width:100vw;height:100vh;display:block}</style>
+<script type="importmap">{"imports":{"three":"./vendor/three/build/three.module.min.js","three/addons/":"./vendor/three/examples/jsm/"}}</script></head><body><canvas id="c"></canvas>
+<script type="module">
+import {THREE,scene,camera,resize,render,loadEnv,flash,hemi,pool} from './js/engine.js';
+import {loadModels,actor,pbr,boxGeo} from './js/assets.js';
+await loadEnv();await loadModels(['male','female','anims','hair_buzzed','hair_long','hair_simpleparted','hair_buzzedfemale','hair_beard','gun_rifle','gun_pistol']);
+resize();scene.fog.density=.01;
+const fl=new THREE.Mesh(boxGeo(20,.1,10,2),pbr('plate'));fl.position.y=-.05;fl.receiveShadow=true;scene.add(fl);
+const who=(new URLSearchParams(location.search).get('who')||'hicks,hudson,vasquez,apone,ripley,newt,burke,bishop').split(',');const anim=new URLSearchParams(location.search).get('a')||'Pistol_Idle_Loop';
+const A=who.map((w,i)=>{const a=actor(w);a.root.position.x=(i-(who.length-1)/2)*.9;scene.add(a.root);a.play(w=='ripley'||w=='newt'||w=='burke'||w=='bishop'?'Idle_Loop':anim,0);return a});
+const cz=+new URLSearchParams(location.search).get('z')||5,cy=+new URLSearchParams(location.search).get('y')||1.3;
+camera.position.set(0,cy,cz);camera.lookAt(0,cy-.2,0);flash.position.set(1,2.5,4);flash.target.position.set(0,1,0);flash.intensity=40;hemi.intensity=1;pool[0].position.set(-2,3,2);pool[0].intensity=20;
+for(const a of A)a.update(+new URLSearchParams(location.search).get('t')||.6);
+let t=0;function loop(){requestAnimationFrame(loop);render()}loop();window.ready=1;
+</script></body></html>
