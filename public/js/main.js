@@ -10,7 +10,7 @@ async function boot(){$('load').style.display='flex';resize();
  await Promise.all([loadEnv(),loadModels(MODELS,k=>{$('lbar').style.width=(k*100|0)+'%'})]);initFX();
  $('next').onclick=()=>GM.startCh(GM.C.n+1);$('restart').onclick=()=>GM.startCh(GM.C.n);$('tomenu').onclick=()=>GM.goMenu();
  $('load').style.display='none';if(Q.has('ch'))GM.startCh(+Q.get('ch'));else GM.goMenu();
- let last=performance.now();function loop(now){requestAnimationFrame(loop);let dt=Math.min(.05,(now-last)/1000);last=now;if(Q.has('auto'))dt=.05;
-  try{if(GM.C)GM.update(dt);else GM.menuUpdate(dt)}catch(err){console.error(err);window.__errs.push(String(err.stack||err))}render();frameStat(dt,now)}requestAnimationFrame(loop);
+ let last=performance.now();function loop(now){requestAnimationFrame(loop);const rdt=Math.min(.1,(now-last)/1000);let dt=Math.min(.05,rdt);last=now;if(Q.has('auto'))dt=.05;
+  try{if(GM.C)GM.update(dt);else GM.menuUpdate(dt)}catch(err){console.error(err);window.__errs.push(String(err.stack||err))}render();frameStat(rdt,now)}requestAnimationFrame(loop);
  window.ready=1;window.__E=E;window.__R=renderer}
 boot();
