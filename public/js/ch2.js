@@ -1,5 +1,5 @@
 // ===== CHAPTER 2 — HADLEY'S HOPE =====
-import * as G from './game.js?v=10';
+import * as G from './game.js?v=11';
 const {THREE,PI,lerp,sm,rnd,LV,PR,WD,dist}=G;
 const MAP2=["###############",
 "#.....#.......#",

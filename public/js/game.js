@@ -1,11 +1,11 @@
 // Campaign runtime: input, over-the-shoulder controller, combat, AI, allies, drive mode, cutscenes, HUD, menu.
-import {THREE,Q,TOUCH,MOBILE,E,setQuality,canvas,scene,camera,hemi,flash,sun,keyL,rimL,muzzle,updateLights,resize,frameStat,render,LS,renderer} from './engine.js?v=10';
-import {pbr,plain,emiss,boxGeo,model,actor,Actor} from './assets.js?v=10';
-import {Alien,Hugger,Queen,egg} from './creatures.js?v=10';
-import * as WD from './world.js?v=10';import {W,CS,WH,solid,solidR,moveE,bfs,pathDir,los,rayWorld,clearWorld} from './world.js?v=10';
-import {FX,initFX,resetFX,updateFX,tracer,muzzleFlash,sparks,acidBurst,decal,flame,explosion,shake,steam,smokePuff,rain,updateRain} from './fx.js?v=10';
-import {audioInit,SFX,tone,noise,music,ambience} from './audio.js?v=10';
-import * as PR from './props.js?v=10';
+import {THREE,Q,TOUCH,MOBILE,E,setQuality,canvas,scene,camera,hemi,flash,sun,keyL,rimL,muzzle,updateLights,resize,frameStat,render,LS,renderer} from './engine.js?v=11';
+import {pbr,plain,emiss,boxGeo,model,actor,Actor} from './assets.js?v=11';
+import {Alien,Hugger,Queen,egg} from './creatures.js?v=11';
+import * as WD from './world.js?v=11';import {W,CS,WH,solid,solidR,moveE,bfs,pathDir,los,rayWorld,clearWorld} from './world.js?v=11';
+import {FX,initFX,resetFX,updateFX,tracer,muzzleFlash,sparks,acidBurst,decal,flame,explosion,shake,steam,smokePuff,rain,updateRain} from './fx.js?v=11';
+import {audioInit,SFX,tone,noise,music,ambience} from './audio.js?v=11';
+import * as PR from './props.js?v=11';
 export const PI=Math.PI,lerp=(a,b,k)=>a+(b-a)*k,cl=(v,a,b)=>Math.max(a,Math.min(b,v)),sm=x=>{x=cl(x,0,1);return x*x*(3-2*x)},rnd=Math.random;
 export const dist=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
 export const AUTO=Q.has('auto');
@@ -228,8 +228,8 @@ export function update(dt){if(!C)return;C.t+=dt;
   if(LV[C.n].cutUpd)LV[C.n].cutUpd(dt,sh,c.u);for(const e of C.en)if(e.obj.root.visible&&sh.actors)syncE(e,dt);
   const cm=sh.cam(c.u);const ev=new THREE.Vector3(...cm.e),cv=new THREE.Vector3(...cm.c);setCam(ev,cv,cm.fov||50);E.cine=true;E.focus=cm.face?ev.distanceTo(cm.face):ev.distanceTo(cv);
   // key light from camera side so faces always read; soft rim from behind
-  const fw=cv.clone().sub(ev).normalize();const rt=new THREE.Vector3().crossVectors(fw,new THREE.Vector3(0,1,0)).normalize();keyL.position.copy(ev).addScaledVector(rt,.7).add(new THREE.Vector3(0,.6,0));keyL.target.position.copy(cv);keyL.intensity=sh.key??(cm.face?9:12);keyL.distance=cm.face?6:30;keyL.angle=cm.face?.45:.7;
-  if(cm.face){rimL.position.copy(cv).addScaledVector(fw,.8).add(new THREE.Vector3(0,.4,0));rimL.intensity=4}else rimL.intensity=0;flash.intensity=sh.flash??0;
+  const fw=cv.clone().sub(ev).normalize();const rt=new THREE.Vector3().crossVectors(fw,new THREE.Vector3(0,1,0)).normalize();keyL.position.copy(ev).addScaledVector(rt,.7).add(new THREE.Vector3(0,.6,0));keyL.target.position.copy(cv);keyL.intensity=sh.key??(cm.face?5.5:12);keyL.distance=cm.face?6:30;keyL.angle=cm.face?.45:.7;
+  if(cm.face){rimL.position.copy(cv).addScaledVector(fw,.8).add(new THREE.Vector3(0,.4,0));rimL.intensity=4}else rimL.intensity=0;flash.intensity=(sh.flash??0)*(cm.face?.45:1);
   if(IN.skip&&C.t-(C.skipT||0)>.3){C.skipT=C.t;c.u=sh.d+1}IN.skip=false;IN.switch=false;if(c.u>=sh.d)nextShot();_focus.copy(cv);finish(dt);return}
  IN.skip=false;if(C.mode=='done'){if(C.pa)C.pa.update(dt);finish(dt);return}
  C.pt+=dt;if(C.msgT>0)C.msgT-=dt;if(C.hurtT>0)C.hurtT-=dt;

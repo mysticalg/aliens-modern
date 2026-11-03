@@ -1,6 +1,6 @@
 // ===== CHAPTER 7 — THE QUEEN'S LAIR =====
-import * as G from './game.js?v=10';
-import {resinDress,wallCocoons,spawner,fmt,TS} from './hive.js?v=10';
+import * as G from './game.js?v=11';
+import {resinDress,wallCocoons,spawner,fmt,TS} from './hive.js?v=11';
 const {THREE,PI,rnd,LV,PR,WD,dist}=G;
 const MAP7=["#####################",
 "#c.......c.Q.c.....c#",
@@ -34,7 +34,7 @@ LV[7]={init(){const C=G.C;eggs=[];qe=null;G.env({fog:.055,fogCol:0x0c0a08,hemi:.
  sp=spawner(WD.W.mk.S,{max:4,every:2,minD:7});sp.on=false;
  for(const[x,z]of[[27,33],[30,21]])G.spawn('alien',x,z,{idle:1,wake:7});
  const pl=C.pa;
- G.cut([{d:3.4,sub:'The freight lift grinds down into the heat and steam beneath the processor.',cam:u=>({e:[px+1.5,1.4+u*.4,pz-3],c:[px,1.3,pz],fov:46}),flash:50},
+ G.cut([{d:3.4,sub:'The freight lift grinds down into the heat and steam beneath the processor.',cam:u=>G.CU(pl,1.7-u*.15,.55,.12,40),flash:40},
   {d:3,sub:'Ripley checks the flare, the flamethrower, the counter. Ninety-nine rounds.',cam:()=>G.CU(pl,.75,.26,.02,30)},
   {d:2.8,sub:'Somewhere ahead, the locator chirps.',cam:()=>G.CU(pl,.6,-.2,.03,27)}],()=>{G.play();LV[7].stage(0)})},
  stage(n){const C=G.C;C.stage=n;
@@ -50,14 +50,14 @@ LV[7]={init(){const C=G.C;eggs=[];qe=null;G.env({fog:.055,fogCol:0x0c0a08,hemi:.
  freed(){const C=G.C;const[qx,qz]=WD.mk('Q');C.coc.visible=false;nw.play('Idle_Loop',.2);
   G.cut([{d:2.8,sub:'Newt, half-sealed in resin, opens her eyes. Ripley pulls her free.',cam:()=>G.CU(nw,.55,.16,.03,26),flash:50},
    {d:2.6,sub:'Newt: "I knew you would come."',cam:()=>G.CU(nw,.5,-.14,.03,24)},
-   {d:3.2,sub:'They turn. Rows of leathery eggs. And above them, something vast unfolds.',cam:u=>({e:[qx+2,1.4,qz+16-u*2],c:[qx,3,qz],fov:44})},
-   {d:3,sub:'The queen lowers her head. Her guards wait for a signal.',cam:u=>({e:[qx+1.2,3.6,qz+5],c:[qx,3.8,qz],fov:36}),flash:20},
+   {d:3.2,sub:'They turn. Rows of leathery eggs. And above them, something vast unfolds.',cam:u=>({e:[qx+2,1.4,qz+16-u*2],c:[qx,3,qz],fov:44}),key:40},
+   {d:3,sub:'The queen lowers her head. Her guards wait for a signal.',cam:u=>({e:[qx+1.2,3.6,qz+5],c:[qx,3.4,qz],fov:40}),key:45,flash:20},
    {d:3.2,sub:'Ripley levels the flamethrower at an egg. A standoff. The queen hisses — and an egg begins to open.',setup:()=>{eggs[0].userData.open&&eggs[0].userData.open(.6)},cam:()=>G.CU(C.pa,.7,.26,.02,30)}],
    ()=>{nw.root.visible=false;const a=G.ally('newt',C.p.x+1,C.p.z+.5,{gun:'none'});G.play();this.stage(1)})},
  lift(){const C=G.C;const[lx,lz]=WD.mk('L');
   G.cut([{d:3,sub:'The lift cage slams shut. The queen\'s jaws slam into the mesh, inches away.',setup:()=>{if(qe){qe.x=lx;qe.z=lz-3}},cam:()=>G.CU(C.pa,.75,.28,.02,30),flash:40},
-   {d:3,sub:'The cage climbs. Below, fire races through the hive.',upd:(u,dt)=>{C.pa.root.position.y+=dt*1.5},cam:u=>({e:[lx+2,1+u*3,lz+2],c:[lx,1+u*3.5,lz],fov:44})},
-   {d:3.4,sub:'On the pad, Bishop and the dropship. They lift off as the processor goes up behind them.',setup:()=>{G.explosion&&G.explosion(new THREE.Vector3(lx,1,lz-10))},cam:u=>({e:[lx-4,2,lz+6],c:[lx,1.5,lz],fov:50}),key:30}],G.winCh)},
+   {d:3,sub:'The cage climbs. Below, fire races through the hive.',upd:(u,dt)=>{C.pa.root.position.y+=dt*1.5},cam:()=>G.CU(C.pa,1.3,.45,.1,38),key:14,flash:30},
+   {d:3.4,sub:'On the pad, Bishop and the dropship. They lift off as the processor goes up behind them.',setup:()=>{G.explosion&&G.explosion(new THREE.Vector3(lx,1,lz-10))},cam:()=>G.CU(C.pa,.9,-.3,.02,32),key:8,flash:40}],G.winCh)},
  step(dt){const C=G.C,p=C.p;if(C.mode!='foot')return;sp.step(dt);
   if(C.stage==1){const eg=G.alive().filter(e=>e.egg);const left=eg.length;if(left){let b=eg[0];for(const e of eg)if(dist(p,e)<dist(p,b))b=e;const d=Math.max(.01,dist(p,b));C.goal=d>3.5?{x:b.x+(p.x-b.x)/d*3,z:b.z+(p.z-b.z)/d*3}:null}C.scoreTxt='EGGS  '+left;if(!left)this.stage(2)}
   else if(C.stage==2){C.scoreTxt='GUARDS  '+Math.max(0,9-(C.kills-C.kc));if(sp.n>=9&&!G.alive().length)this.stage(3)}

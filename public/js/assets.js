@@ -1,5 +1,5 @@
 // Texture/material library, procedural textures, character factory (CC0 Quaternius rigs + UAL animations).
-import {THREE,E,renderer} from './engine.js?v=10';
+import {THREE,E,renderer} from './engine.js?v=11';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
 import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js';

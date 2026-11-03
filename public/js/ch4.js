@@ -1,6 +1,6 @@
 // ===== CHAPTER 4 — OPS SIEGE =====
-import * as G from './game.js?v=10';
-import {spawner,fmt,TS,sentryGun} from './hive.js?v=10';
+import * as G from './game.js?v=11';
+import {spawner,fmt,TS,sentryGun} from './hive.js?v=11';
 const {THREE,PI,rnd,LV,PR,WD,dist}=G;
 const MAP4=["#######################",
 "###########N###########",
@@ -53,7 +53,7 @@ LV[4]={init(){const C=G.C;G.env({fog:.035,fogCol:0x0c1014,hemi:.55,hemiCol:0x9aa
   if(n==5){C.obj='';this.endCut()}},
  wait(){const C=G.C;const[ax,az]=[sA.x,sA.z];
   G.cut([{d:3,sub:'Hours pass. The rounds counters sit at full. Then, far off, the first one ticks down.',cam:u=>({e:[ax+2.5,1.2,az+1.3],c:[ax-6,1,az],fov:40}),flash:0},
-   {d:2.8,sub:'Vasquez watches the readout, chewing her lip.',cam:()=>G.CU(va.a,.85,.28)}],()=>{G.play();this.stage(3)})},
+   {d:2.8,sub:'Vasquez watches the readout, chewing her lip.',cam:()=>G.CU(va.a,.7,-.3,.02,32)}],()=>{G.play();this.stage(3)})},
  endCut(){const C=G.C;
   G.cut([{d:3,sub:'Silence, except for the hiss of acid eating through the floor.',cam:u=>({e:[C.p.x+3,2.2,C.p.z+3],c:[C.p.x,1,C.p.z],fov:48})},
    {d:3,sub:'Ripley turns. The vent grille hangs open.',setup:()=>{nw.root.visible=false;rp.play('Idle_Loop',.2)},cam:()=>G.CU(rp,.8,.3,.02,32)},

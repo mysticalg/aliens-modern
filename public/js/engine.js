@@ -56,7 +56,7 @@ const rp=new RenderPass(scene,camera);composer.addPass(rp);
 let ao=null;if(E.P.ao){ao=new GTAOPass(scene,camera,1,1);ao.output=GTAOPass.OUTPUT.Default;ao.blendIntensity=E.q=='ultra'?1:.85;ao.updateGtaoMaterial({radius:E.q=='ultra'?.65:.5,distanceExponent:1.5,thickness:1,scale:1});if(E.q=='ultra')ao.updatePdMaterial({lumaPhi:10,depthPhi:2,normalPhi:3,radius:4,rings:2,samples:8});{const _s=ao.setSize.bind(ao);ao.setSize=(w,h)=>_s(Math.max(1,w*.5|0),Math.max(1,h*.5|0))}composer.addPass(ao)}
 // depth of field, cutscenes only (Ultra)
 export const dof=E.P.dof?new BokehPass(scene,camera,{focus:3,aperture:.0035,maxblur:.006}):null;if(dof){dof.enabled=false;composer.addPass(dof)}
-export const bloom=new UnrealBloomPass(new THREE.Vector2(256,256),E.q=='ultra'?.62:.55,.5,.82);if(E.P.bloom)composer.addPass(bloom);
+export const bloom=new UnrealBloomPass(new THREE.Vector2(256,256),E.q=='ultra'?.45:.45,.45,.88);if(E.P.bloom)composer.addPass(bloom);
 composer.addPass(new OutputPass());
 // cinematic finish: screen-space light shafts toward the brightest on-screen lamp, chromatic fringe, film grain, vignette.
 const CineShader={uniforms:{tDiffuse:{value:null},uT:{value:0},uGrain:{value:.03},uCA:{value:.0012},uL:{value:new THREE.Vector2(.5,.5)},uLS:{value:0},uRes:{value:new THREE.Vector2(1,1)},uSteps:{value:E.q=='ultra'?24:12}},
@@ -66,8 +66,8 @@ const CineShader={uniforms:{tDiffuse:{value:null},uT:{value:0},uGrain:{value:.03
  void main(){vec2 d=vUv-.5;float r2=dot(d,d);vec2 o=d*uCA*(1.+r2*4.);
   vec3 c=vec3(texture2D(tDiffuse,vUv+o).r,texture2D(tDiffuse,vUv).g,texture2D(tDiffuse,vUv-o).b);
   if(uLS>.001){vec2 st=(vUv-uL)/float(uSteps)*.9;vec2 q=vUv;float w=1.;vec3 acc=vec3(0.);float j=h(vUv*uRes+uT);q-=st*j;
-   for(int i=0;i<48;i++){if(i>=uSteps)break;q-=st;vec3 s=texture2D(tDiffuse,q).rgb;acc+=max(s-vec3(.62),0.)*w;w*=.955;}
-   c+=acc/float(uSteps)*uLS*2.2;}
+   for(int i=0;i<48;i++){if(i>=uSteps)break;q-=st;vec3 s=texture2D(tDiffuse,q).rgb;acc+=max(s-vec3(.75),0.)*w;w*=.955;}
+   c+=acc/float(uSteps)*uLS*1.5;}
   float g=h(vUv*uRes+fract(uT*7.13)*91.)-.5;c+=g*uGrain*(1.-dot(c,vec3(.33))*.6);
   c*=1.-r2*.55;gl_FragColor=vec4(c,1.);}`};
 export const cine=E.P.cine?new ShaderPass(CineShader):null;if(cine)composer.addPass(cine);
@@ -85,7 +85,7 @@ function cinematic(){const t=performance.now()/1000;
  if(cine){cine.uniforms.uT.value=t%100;const w=renderer.domElement.width,h=renderer.domElement.height;cine.uniforms.uRes.value.set(w,h);cine.uniforms.uCA.value=E.cine?.0018:.0011;cine.uniforms.uGrain.value=E.q=='ultra'?.032:.022;
   // brightest pool light in view drives the light shafts
   let best=0;camera.getWorldDirection(_q);for(const l of pool.concat(fxPool,[muzzle])){if(l.intensity<=0)continue;_p.copy(l.position).sub(camera.position);const D=_p.length();if(D<.6||D>16||_p.dot(_q)/D<.35)continue;const s=l.intensity/(1+D*D*.08);if(s>best){best=s;_p.copy(l.position).project(camera);cine.uniforms.uL.value.set(_p.x*.5+.5,_p.y*.5+.5)}}
-  const tgt=Math.min(1,best/8)*(E.q=='ultra'?1:.6);cine.uniforms.uLS.value+=(tgt-cine.uniforms.uLS.value)*.08}
+  const tgt=Math.min(1,best/8)*(E.q=='ultra'?.7:.5);cine.uniforms.uLS.value+=(tgt-cine.uniforms.uLS.value)*.08}
  if(cone){const I=flash.intensity;cone.visible=I>1;if(cone.visible){const L=Math.min(flash.distance||20,11);cone.position.copy(flash.position);cone.lookAt(flash.target.position);const r=Math.tan(flash.angle)*L;cone.scale.set(r,r,L);cone.material.uniforms.uI.value=Math.min(1,I/60)*(E.q=='ultra'?.075:.05)*(scene.fog.density>.02?1.25:1)}}
  if(dust){const a=dust.geometry.attributes.position.array,cx=camera.position.x,cy=camera.position.y,cz=camera.position.z;
   // wrap motes around the camera (world-fixed, so they parallax properly)

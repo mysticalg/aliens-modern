@@ -1,6 +1,6 @@
 // ===== CHAPTER 3 — THE NEST =====
-import * as G from './game.js?v=10';
-import {resinDress,wallCocoons,spawner,fmt,clearForDrive,cockpit,TS} from './hive.js?v=10';
+import * as G from './game.js?v=11';
+import {resinDress,wallCocoons,spawner,fmt,clearForDrive,cockpit,TS} from './hive.js?v=11';
 const {THREE,PI,rnd,LV,PR,WD,dist}=G;
 const MAP3=["###################",
 "#S...c.......c...S#",
@@ -61,11 +61,11 @@ LV[3]={init(){const C=G.C;G.env({fog:.05,fogCol:0x0a100e,hemi:.3,hemiCol:0x7a948
    ()=>{col.root.visible=false;G.play();this.stage(2)})},
  rescue(){const C=G.C;const apc=PR.apc();apc.position.set(-80,0,-120);apc.rotation.y=PI;C.g.add(apc);
   G.cut([{d:3,sub:'Ripley shoves Gorman aside and takes the APC controls.',cam:()=>G.CU(rp,.85,.28,.02,34)},
-   {d:3,sub:'She drives straight into the nest to get them out.',upd:(u,dt)=>{apc.position.z+=dt*14},cam:u=>({e:[-84,1.2,-100],c:[-80,1.3,apc.position.z],fov:46}),flash:0,key:30}],
+   {d:3,sub:'She drives straight into the nest to get them out.',upd:(u,dt)=>{apc.position.z+=dt*14},cam:u=>({e:[-84,1.2,-100],c:[-80,1.3,apc.position.z],fov:46}),flash:25,key:45}],
    ()=>{clearForDrive([ck]);G.env({fog:.022,fogCol:0x141a20,hemi:1.15,sun:.7});G.setupDrive(480*Math.max(TS,.5),{gap:18,noRock:1});G.buildRoad(480*Math.max(TS,.5),true);G.play('drive');C.obj='Ram through! FIRE boosts — smash the aliens off the road';G.say('Ripley at the wheel — crush them, avoid the wrecks',4)})},
  driveDone(){const C=G.C,D=C.drv;
-  G.cut([{d:3.4,sub:'The APC smashes out through the barricade, survivors clinging on inside.',upd:(u,dt)=>{D.z-=dt*8;D.apc.position.z=D.z;PR.spinWheels(D.apc,8,dt)},cam:u=>({e:[D.x+5,2.2,D.z-14],c:[D.x,1.2,D.z],fov:48}),key:40},
-   {d:3,sub:'Ripley exhales. Behind them, the nest screams.',cam:()=>G.CU(rp,.8,-.25,.02,32)}],G.winCh)},
+  G.cut([{d:3.4,sub:'The APC smashes out through the barricade, survivors clinging on inside.',upd:(u,dt)=>{D.z-=dt*8;D.apc.position.z=D.z;PR.spinWheels(D.apc,8,dt)},cam:u=>({e:[D.x+5,2.2,D.z-14],c:[D.x,1.2,D.z],fov:48}),key:55,flash:20},
+   {d:3,sub:'Ripley exhales. Behind them, the nest screams.',upd:(u,dt)=>{D.z-=dt*4;D.apc.position.z=D.z;PR.spinWheels(D.apc,4,dt)},cam:u=>({e:[D.x-4.5,1.9,D.z-6+u*.5],c:[D.x,1.4,D.z],fov:42}),key:50,flash:20}],G.winCh)},
  step(dt){const C=G.C,p=C.p;if(C.mode!='foot')return;
   if(C.stage==0&&dist(p,C.goal)<3.2)this.stage(1);
   if(C.stage>=2&&C.stage<4)sp.step(dt);

@@ -1,6 +1,6 @@
 // ===== CHAPTER 5 — MEDLAB =====
-import * as G from './game.js?v=10';
-import {fmt,TS} from './hive.js?v=10';
+import * as G from './game.js?v=11';
+import {fmt,TS} from './hive.js?v=11';
 const {THREE,PI,rnd,LV,PR,WD,dist}=G;
 const MAP5=["###############",
 "#.....k.k.....#",
@@ -47,9 +47,9 @@ LV[5]={init(){const C=G.C;tanks=[];G.env({fog:.03,fogCol:0x0e1416,hemi:.6,hemiCo
  rescue(){const C=G.C;const[dx,dz]=WD.mk('D');door.target=1;for(const e of G.alive())G.killE(e);
   G.place(hk,dx,dz+.5,PI);G.place(hu,dx+1,dz+1.4,PI);hk.loco('Idle_Loop','Pistol_Idle_Loop',0);hu.loco('Idle_Loop','Pistol_Idle_Loop',0);
   G.cut([{d:3,sub:'The door gives. Hicks and Hudson burst in, rifles up, through the falling water.',cam:u=>({e:[dx+2,1.6,dz-4],c:[dx,1.3,dz],fov:46}),flash:30},
-   {d:3,sub:'They blast the last hugger off Newt. Ripley drags in a breath.',cam:()=>G.CU(hk,.9,.3)},
+   {d:3,sub:'They blast the last hugger off Newt. Ripley drags in a breath.',cam:()=>G.CU(hk,.85,-.3,.02,32)},
    {d:3.4,sub:'Ripley: "Burke. He locked us in with them. He wanted them carried home — in us."',setup:()=>C.pa.play('Idle_Talking_Loop',.2),cam:()=>G.CU(C.pa,.8,-.26,.02,32)},
-   {d:3,sub:'Hicks says nothing. His hand closes on his rifle grip.',cam:()=>G.CU(hk,.8,-.25)}],G.winCh)},
+   {d:3,sub:'Hicks says nothing. His hand closes on his rifle grip.',cam:()=>G.CU(hk,.8,-.3,.02,32)}],G.winCh)},
  step(dt){const C=G.C;if(C.mode!='foot')return;
   if(C.stage==3){C.extraH-=dt;if(C.extraH<=0&&G.alive().length<2){C.extraH=6*TS;const[px,pz]=[C.p.x,C.p.z];const t=tanks[(rnd()*2)|0];G.spawn('hugger',t.position.x,t.position.z+1)}if(C.t>=C.endT)this.stage(4)}
   C.scoreTxt=C.stage>=2&&C.stage<4?'HUGGERS  '+G.alive().length:''}};

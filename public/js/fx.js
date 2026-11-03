@@ -1,5 +1,5 @@
 // Particles (steam, sparks, acid, flame, smoke, rain), tracers, muzzle flashes, decals, camera shake, explosions.
-import {THREE,scene,camera,muzzle,fxPool,E,MOBILE} from './engine.js?v=10';
+import {THREE,scene,camera,muzzle,fxPool,E,MOBILE} from './engine.js?v=11';
 const rnd=Math.random;
 function spriteTex(kind){const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d');
  if(kind=='soft'){const g=x.createRadialGradient(32,32,0,32,32,32);g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.35,'rgba(255,255,255,.55)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,64,64)}

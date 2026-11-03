@@ -1,6 +1,6 @@
 // ===== CHAPTER 8 — SULACO =====
-import * as G from './game.js?v=10';
-import {fmt,TS} from './hive.js?v=10';
+import * as G from './game.js?v=11';
+import {fmt,TS} from './hive.js?v=11';
 const {THREE,PI,rnd,LV,PR,WD,dist}=G;
 const MAP8=["#################",
 "#......A........#",
@@ -22,7 +22,7 @@ LV[8]={init(){const C=G.C;G.env({fog:.018,fogCol:0x101418,hemi:.85,hemiCol:0xb8c
  const ring=new THREE.Mesh(new THREE.BoxGeometry(5.4,.05,4.4),G.emiss(0xffb040,1.2));ring.position.set(ax,.02,az+1);C.g.add(ring);
  G.LS.list.push({p:[ax,3,az+1],c:0xffb050,col:new THREE.Color(0xffb050),i:10,d:10,ph:0,pulse:.6});
  const[dx,dz]=WD.mk('D');ds=PR.dropship();ds.position.set(dx,1.6,dz);ds.scale.setScalar(.7);C.g.add(ds);
- G.LS.list.push({p:[dx+5,5,dz+4],c:0xdfe8ff,col:new THREE.Color(0xdfe8ff),i:26,d:26,ph:0},{p:[dx-5,5,dz-6],c:0xdfe8ff,col:new THREE.Color(0xdfe8ff),i:22,d:24,ph:0});
+ G.LS.list.push({p:[dx+5,5,dz+4],c:0xdfe8ff,col:new THREE.Color(0xdfe8ff),i:15,d:22,ph:0},{p:[dx-5,5,dz-6],c:0xdfe8ff,col:new THREE.Color(0xdfe8ff),i:12,d:20,ph:0});
  const[nx,nz]=WD.mk('N'),[rx,rz]=WD.mk('R');
  nw=G.cast('newt','newt');G.place(nw,dx-2,dz+3,0);rp=G.cast('ripley','ripley');G.place(rp,dx-1,dz+3.4,PI*.2);rp.play('Idle_Loop',0);
  bi=G.cast('bishop','bishop');G.place(bi,dx+1.5,dz+3,PI);bi.play('Idle_Talking_Loop',0);
@@ -32,11 +32,11 @@ LV[8]={init(){const C=G.C;G.env({fog:.018,fogCol:0x101418,hemi:.85,hemiCol:0xb8c
  const sc=(e,c,fov=46)=>()=>({e,c,fov});
  G.cut([{d:3.4,sub:'The Sulaco. The dropship settles into the hangar, engines ticking as they cool.',cam:u=>({e:[dx+8-u,3,dz+9],c:[dx,1.5,dz],fov:48}),flash:20},
   {d:3,sub:'Bishop: "Tight timing, I know. I did my best."',cam:()=>G.CU(bi,.85,.28,.02,32)},
-  {d:3,sub:'Acid hisses on the deck. Something drips from the landing gear.',cam:sc([dx+1,.5,dz+1.2],[dx,.4,dz],36)},
-  {d:3.2,sub:'The queen unfolds from the undercarriage. She seizes Bishop and hurls him across the hangar.',setup:()=>{qn.root.visible=true;qn.root.position.set(dx+1,0,dz);G.place(bi,dx+6,dz+5,-.4);bi.play('Death01',.1,{once:1});G.shake(.5)},cam:sc([dx-3,2,dz+8],[dx+1,3,dz],46),key:30},
+  {d:3,sub:'Acid hisses on the deck. Something drips from the landing gear.',cam:sc([dx+1.6,.7,dz+2],[dx,.5,dz],38),key:25},
+  {d:3.2,sub:'The queen unfolds from the undercarriage. She seizes Bishop and hurls him across the hangar.',setup:()=>{qn.root.visible=true;qn.root.position.set(dx+3.5,0,dz+2);qn.root.rotation.y=.6;G.place(bi,dx+6,dz+5,-.4);bi.play('Death01',.1,{once:1});G.shake(.5)},cam:sc([dx+8,2.4,dz+8.5],[dx+3.5,2.4,dz+2],44),key:40},
   {d:3,sub:'Ripley: "Newt — get under the floor!" Newt dives beneath the deck plating.',setup:()=>{G.place(nw,nx,nz,PI)},cam:()=>G.CU(rp,.62,-.2,.02,28)},
-  {d:3.2,sub:'The queen tears at the grating, hunting the child.',setup:()=>{qn.root.position.set(nx+2.5,0,nz-2.5);qn.root.rotation.y=Math.atan2(nx-qn.root.position.x,nz-qn.root.position.z);nw.root.visible=false},cam:sc([nx+5,1.2,nz+2],[nx+2,2.4,nz-2],44)},
-  {d:3.4,sub:'A cargo door rolls up. Ripley strides out, strapped into a power loader. "Back off from her!"',setup:()=>{rp.root.visible=false},cam:sc([rx-2.5,2.4,rz-4],[rx,2.4,rz],38),key:40}],
+  {d:3.2,sub:'The queen tears at the grating, hunting the child.',setup:()=>{qn.root.position.set(nx+2.5,0,nz-2.5);qn.root.rotation.y=Math.atan2(nx-qn.root.position.x,nz-qn.root.position.z);nw.root.visible=false},cam:sc([nx+5.5,1.8,nz+2.5],[nx+2.5,2.2,nz-2.5],44),key:40},
+  {d:3.4,sub:'A cargo door rolls up. Ripley strides out, strapped into a power loader. "Back off from her!"',setup:()=>{ld.add(rp.root);rp.root.position.set(0,.75,.05);rp.root.rotation.set(0,0,0);rp.root.visible=true;rp.play('Idle_Loop',0)},cam:sc([rx-2.2,2.3,rz-4],[rx,2.2,rz],36),key:30}],
   ()=>{L={x:rx,z:rz,ya:PI,v:0,punch:0,arm:0,cd:0};Q={x:nx+2.5,z:nz-2.5,ya:0,hp:60,st:'stalk',t:0,hitT:0};C.p.hp=100;G.play('loader');LV[8].stage(0)})},
  stage(n){const C=G.C;C.stage=n;
   if(n==0){C.obj='Fight the queen — punch with FIRE, back off when she rears up';C.bar=()=>['QUEEN',Q.hp/60,'#9fd0c0'];G.say(G.TOUCH?'Stick drives the loader · drag turns · FIRE punches':'W/S drive · A/D or mouse turn · click / Space punches',5)}
@@ -46,11 +46,11 @@ LV[8]={init(){const C=G.C;G.env({fog:.018,fogCol:0x101418,hemi:.85,hemiCol:0xb8c
   if(n==4){C.bar=null;this.ending()}},
  grapple(){const C=G.C;
   G.cut([{d:3,sub:'The queen lunges and locks onto the loader. Steel shrieks.',setup:()=>G.shake(.6),cam:()=>({e:[L.x+4,2.5,L.z+3],c:[L.x,2.2,L.z],fov:44}),key:30},
-   {d:2.8,sub:'Ripley, teeth gritted, grips the claws tight. She will not let go.',cam:()=>({e:[L.x+Math.sin(L.ya)*1.6,2.4,L.z+Math.cos(L.ya)*1.6],c:[L.x,2.25,L.z],fov:34}),flash:30}],()=>{G.play('loader');this.stage(2)})},
+   {d:2.8,sub:'Ripley, teeth gritted, grips the claws tight. She will not let go.',cam:()=>{const h=G.headPos(rp),f=[Math.sin(L.ya),Math.cos(L.ya)],r=[-Math.cos(L.ya),Math.sin(L.ya)];return{e:[L.x+f[0]*2.2+r[0]*1.4,2.5,L.z+f[1]*2.2+r[1]*1.4],c:[h.x,h.y-.05,h.z],fov:30,face:h}},flash:30}],()=>{G.play('loader');this.stage(2)})},
  ending(){const C=G.C;const[ax,az]=WD.mk('A');
   G.cut([{d:3,sub:'The outer doors split open. The air goes with them in a roar.',upd:(u,dt)=>{hatch.position.x=ax+u*3;G.shake(.3)},cam:()=>({e:[ax+6,3,az+7],c:[ax,0,az+1],fov:46})},
-   {d:3,sub:'The queen claws for the edge — and is gone into the dark.',upd:(u,dt)=>{if(u>.55)qn.root.position.y-=dt*(u-.5)*14},key:16,flash:45,cam:()=>{const q=qn.root.position,mx=(q.x+L.x)/2,mz=(q.z+L.z)/2;let dx=L.x-q.x,dz=L.z-q.z;const dl=Math.hypot(dx,dz)||1;dx/=dl;dz/=dl;const sd=Math.max(4.5,dl*.9);return{e:[mx-dz*sd,2.3,mz+dx*sd],c:[mx,Math.max(.4,q.y+1.6),mz],fov:50,face:new THREE.Vector3(L.x,2.25,L.z)}}},
-   {d:3,sub:'The doors seal. Silence. Newt scrambles out from the plating and runs to her.',setup:()=>{qn.root.visible=false;G.place(rp,ax+2,az+6,PI*.9);rp.play('Idle_Loop',0);G.place(nw,ax+2.7,az+7.6,PI*1.1);nw.play('Jog_Fwd_Loop',0)},upd:(u,dt)=>{nw.root.position.z-=dt*.4},cam:()=>G.CU(rp,.85,.3,.02,32),flash:40},
+   {d:3,sub:'The queen claws for the edge — and is gone into the dark.',upd:(u,dt)=>{if(u>1.9)qn.root.position.y-=dt*(u-1.7)*9},key:16,flash:45,cam:()=>{const q=qn.root.position,mx=(q.x+L.x)/2,mz=(q.z+L.z)/2;let dx=L.x-q.x,dz=L.z-q.z;const dl=Math.hypot(dx,dz)||1;dx/=dl;dz/=dl;const sd=Math.max(4.5,dl*.9);return{e:[mx-dz*sd,2.3,mz+dx*sd],c:[mx,Math.max(.4,q.y+1.6),mz],fov:50,face:new THREE.Vector3(L.x,2.25,L.z)}}},
+   {d:3,sub:'The doors seal. Silence. Newt scrambles out from the plating and runs to her.',setup:()=>{qn.root.visible=false;C.g.add(rp.root);G.place(rp,ax+2,az+6,PI*.9);rp.play('Idle_Loop',0);G.place(nw,ax+2.7,az+7.6,PI*1.1);nw.play('Jog_Fwd_Loop',0)},upd:(u,dt)=>{nw.root.position.z-=dt*.4},cam:()=>G.CU(rp,.85,.3,.02,32),flash:40},
    {d:3.2,sub:'Newt calls her "Mum". Ripley holds her and does not let go.',setup:()=>nw.play('Idle_Loop',.3),cam:()=>G.CU(nw,.5,.14,.03,24),flash:40},
    {d:3.4,sub:'Hypersleep. Newt asks if they can dream on the long way home. Ripley says yes — they both can.',setup:()=>{for(const a of[rp,nw])a.play('Sitting_Idle_Loop',.3)},cam:()=>G.CU(nw,.55,-.16,.03,26),flash:25}],G.winCh)},
  modeStep(dt,I){const C=G.C;const cam=G.camera;
