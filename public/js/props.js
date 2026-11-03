@@ -1,18 +1,18 @@
 // Vehicles and set dressing built procedurally from PBR primitives.
-import {THREE} from './engine.js?v=13';
-import {pbr,plain,emiss,boxGeo,model,resinMat} from './assets.js?v=13';
+import {THREE} from './engine.js?v=14';
+import {pbr,plain,emiss,boxGeo,model,resinMat,G} from './assets.js?v=14';
 const M=(g,m,x=0,y=0,z=0)=>{const o=new THREE.Mesh(g,m);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;return o};
 const hullM=()=>pbr('panel',{color:0x6f7560}),darkM=()=>pbr('panel',{color:0x2c302a}),rubber=plain(0x101010,.85,0),glass=new THREE.MeshPhysicalMaterial({color:0x223038,roughness:.08,metalness:.2,transmission:0,clearcoat:1,envMapIntensity:2});
 export function apc(){const g=new THREE.Group(),H=hullM(),D=darkM();
- g.add(M(boxGeo(2.6,1.3,6.2,1.5,.12),H,0,1.35,0));g.add(M(boxGeo(2.3,.6,3.2,1.5,.1),H,0,2.25,.6));
+ const hull=G.apc_hull?model('apc_hull'):null;if(hull)g.add(hull);else{g.add(M(boxGeo(2.6,1.3,6.2,1.5,.12),H,0,1.35,0));g.add(M(boxGeo(2.3,.6,3.2,1.5,.1),H,0,2.25,.6));
  const nose=M(boxGeo(2.5,.8,1.4,1.5,.1),H,0,1.05,3.3);nose.rotation.x=.35;g.add(nose);
- g.add(M(boxGeo(2.7,.25,6.4,1.5,.05),D,0,.82,0));
- const tur=new THREE.Group();tur.position.set(0,2.7,-.6);tur.add(M(new THREE.CylinderGeometry(.55,.65,.35,20),H));for(const s of[-.18,.18]){const b=M(new THREE.CylinderGeometry(.05,.05,1.5,10),D,s,.05,.8);b.rotation.x=Math.PI/2;tur.add(b)}g.add(tur);g.userData.tur=tur;
+ g.add(M(boxGeo(2.7,.25,6.4,1.5,.05),D,0,.82,0));}
+ const tur=new THREE.Group();tur.position.set(0,2.8,-.6);tur.add(M(new THREE.CylinderGeometry(.55,.65,.35,20),H));for(const s of[-.18,.18]){const b=M(new THREE.CylinderGeometry(.05,.05,1.5,10),D,s,.05,.8);b.rotation.x=Math.PI/2;tur.add(b)}g.add(tur);g.userData.tur=tur;
  const wheels=[];for(const z of[-2.2,-.75,.75,2.2])for(const s of[-1,1]){const w=new THREE.Group();w.position.set(s*1.25,.55,z);const t=M(new THREE.CylinderGeometry(.55,.55,.42,22),rubber);t.rotation.z=Math.PI/2;w.add(t);const hub=M(new THREE.CylinderGeometry(.28,.28,.44,10),D);hub.rotation.z=Math.PI/2;w.add(hub);g.add(w);wheels.push(w)}
  g.userData.wheels=wheels;
- for(const s of[-1,1]){g.add(M(new THREE.BoxGeometry(.04,.12,1.8),glass,s*1.16,2.3,.9));const hl=M(new THREE.BoxGeometry(.3,.12,.05),emiss(0xfff0d0,6),s*.85,1.25,3.95);g.add(hl);
+ if(!hull){for(const s of[-1,1]){g.add(M(new THREE.BoxGeometry(.04,.12,1.8),glass,s*1.16,2.3,.9));const hl=M(new THREE.BoxGeometry(.3,.12,.05),emiss(0xfff0d0,6),s*.85,1.25,3.95);g.add(hl);
   const tl=M(new THREE.BoxGeometry(.25,.1,.05),emiss(0xff2010,2),s*1.05,1.5,-3.12);g.add(tl)}
- g.add(M(new THREE.BoxGeometry(1.4,.1,.04),emiss(0xffa040,1.2),0,2.0,-3.12));
+ g.add(M(new THREE.BoxGeometry(1.4,.1,.04),emiss(0xffa040,1.2),0,2.0,-3.12));}
  return g}
 export function spinWheels(g,v,dt){for(const w of g.userData.wheels)w.rotation.x+=v*dt/.55}
 export function dropship(){const g=new THREE.Group(),H=pbr('panel',{color:0x5c6268}),D=darkM();

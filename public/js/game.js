@@ -1,11 +1,11 @@
 // Campaign runtime: input, over-the-shoulder controller, combat, AI, allies, drive mode, cutscenes, HUD, menu.
-import {THREE,Q,TOUCH,MOBILE,E,setQuality,canvas,scene,camera,hemi,flash,sun,keyL,rimL,muzzle,updateLights,resize,frameStat,render,LS,renderer} from './engine.js?v=13';
-import {pbr,plain,emiss,boxGeo,model,actor,Actor} from './assets.js?v=13';
-import {Alien,Hugger,Queen,egg} from './creatures.js?v=13';
-import * as WD from './world.js?v=13';import {W,CS,WH,solid,solidR,solidC,moveE,bfs,pathDir,los,rayWorld,clearWorld} from './world.js?v=13';
-import {FX,initFX,resetFX,updateFX,tracer,muzzleFlash,sparks,acidBurst,decal,flame,explosion,shake,steam,smokePuff,rain,updateRain} from './fx.js?v=13';
-import {audioInit,SFX,tone,noise,music,ambience} from './audio.js?v=13';
-import * as PR from './props.js?v=13';
+import {THREE,Q,TOUCH,MOBILE,E,setQuality,canvas,scene,camera,hemi,flash,sun,keyL,rimL,muzzle,updateLights,resize,frameStat,render,LS,renderer} from './engine.js?v=14';
+import {pbr,plain,emiss,boxGeo,model,actor,Actor} from './assets.js?v=14';
+import {Alien,Hugger,Queen,egg} from './creatures.js?v=14';
+import * as WD from './world.js?v=14';import {W,CS,WH,solid,solidR,solidC,moveE,bfs,pathDir,los,rayWorld,clearWorld} from './world.js?v=14';
+import {FX,initFX,resetFX,updateFX,tracer,muzzleFlash,sparks,acidBurst,decal,flame,explosion,shake,steam,smokePuff,rain,updateRain} from './fx.js?v=14';
+import {audioInit,SFX,tone,noise,music,ambience} from './audio.js?v=14';
+import * as PR from './props.js?v=14';
 export const PI=Math.PI,lerp=(a,b,k)=>a+(b-a)*k,cl=(v,a,b)=>Math.max(a,Math.min(b,v)),sm=x=>{x=cl(x,0,1);return x*x*(3-2*x)},rnd=Math.random;
 export const dist=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
 export const AUTO=Q.has('auto');
@@ -94,9 +94,9 @@ function assist(p,dt,strength){// soft aim assist: rotate toward the enemy neare
 const PR_R=.42,_cr=new THREE.Raycaster(),_fd=new Set();
 function camHit(o,d,L){_cr.set(o,d);_cr.far=L;const hs=W.camBlock.length?_cr.intersectObjects(W.camBlock,true):[];return hs.length?hs[0]:null}
 function camUpdate(dt,snap){const p=C.p,cm=C.cam;// over-the-shoulder camera: spherecast against walls and props, min distance, occluder fade
- const f=aimDir(p),r=new THREE.Vector3(-Math.cos(p.ya),0,Math.sin(p.ya));const port=E.portrait;const back=port?3.4:2.55,sideO=port?.38:.62,up=port?1.85:1.62,CR=.28;
+ const f=aimDir(p),r=new THREE.Vector3(-Math.cos(p.ya),0,Math.sin(p.ya));const port=E.portrait;const back=port?3.6:3.0,sideO=port?.38:.6,up=port?1.95:1.78,CR=.28;
  const piv=new THREE.Vector3(p.x,up,p.z);let so=sideO;for(;so>0;so-=.1){if(!solidC(p.x+r.x*so,p.z+r.z*so,CR))break}piv.addScaledVector(r,Math.max(0,so));
- const want=piv.clone().addScaledVector(f,-back);want.y+=.18;const dir=want.clone().sub(piv);const L=dir.length();dir.normalize();let ok=L;
+ const fl=new THREE.Vector3(f.x,0,f.z).normalize();const want=piv.clone().addScaledVector(fl,-back);want.y+=.22-Math.sin(p.pitch)*back*.35;want.y=Math.max(1.25,Math.min(C.open?4:WH-.3,want.y));const dir=want.clone().sub(piv);const L=dir.length();dir.normalize();let ok=L;
  for(let t=.05;t<=L;t+=.05){const q=piv.clone().addScaledVector(dir,t);if(solidC(q.x,q.z,CR)||(!C.open&&q.y>WH-.2)||q.y<.15){ok=t-.05;break}}
  const h=camHit(piv,dir,L+CR);if(h)ok=Math.min(ok,h.distance-CR);ok=Math.max(.05,ok);
  let cp=piv.clone().addScaledVector(dir,ok);{const hd=new THREE.Vector3(p.x,1.6,p.z),v=cp.clone().sub(hd),l=v.length();if(l>.05){v.normalize();const hh=camHit(hd,v,l+CR);if(hh&&hh.distance<l+CR)cp=hd.addScaledVector(v,Math.max(.05,hh.distance-CR))}}const tgt=piv.clone().addScaledVector(f,20);
@@ -123,7 +123,7 @@ function footStep(dt,I){const p=C.p,pa=C.pa;
  if(ml>.05){moveE(p,wx*sp*dt,wz*sp*dt,PR_R);if(((C.t*(sp>5?3:2.2))|0)!=((C.t-dt)*(sp>5?3:2.2)|0))SFX.step()}
  // body facing: toward aim, legs turn toward movement (with spine counter-twist)
  let off=0,lo='Idle_Loop',ts=1;if(ml>.05){const mya=Math.atan2(wx,wz);let rel=((mya-p.ya+PI*3)%(PI*2))-PI;if(Math.abs(rel)>PI*.62){lo='Walk_Loop';ts=-1.25;rel=((rel+PI*2)%(PI*2))-PI;rel=((rel+PI+PI*3)%(PI*2))-PI}else lo=sp>5.5?'Sprint_Loop':'Jog_Fwd_Loop';off=cl(rel,-1.1,1.1);if(lo=='Jog_Fwd_Loop')ts=sp/4.6}
- p.off=lerp(p.off||0,off,1-Math.exp(-dt*10));p.fy=p.ya+p.off;pa.root.position.set(p.x,0,p.z);pa.root.rotation.y=p.fy;pa.loco(lo,'Pistol_Idle_Loop',.2,ts);pa.aim(-p.off,p.pitch);pa.aimPitch=p.pitch;pa.root.visible=true;
+ p.off=lerp(p.off||0,off,1-Math.exp(-dt*10));p.fy=p.ya+p.off;pa.root.position.set(p.x,0,p.z);pa.root.rotation.y=p.fy;pa.loco(lo,pa.gun&&pa.gun.visible?'Pistol_Idle_Loop':'Idle_Loop',.2,ts);pa.aim(-p.off,p.pitch);pa.aimPitch=p.pitch;pa.root.visible=true;
  // latch / interaction zones take FIRE first
  let fire=I.fire;C.actOn=false;
  if(C.latch){if(fire){C.latchP=(C.latchP||0)+dt;if(C.latchP>1){const e=C.latch;C.latch=null;e.x=p.x+f[0]*1.2;e.z=p.z+f[1]*1.2;killE(e);C.latchP=0;say('Tore it off!',1.5)}}else C.latchP=Math.max(0,(C.latchP||0)-dt*.5);if(C.latch){churt(7*dt)}fire=false}
@@ -169,7 +169,7 @@ function allies(dt){const p=C.p;C.allies.forEach((A,i)=>{if(A.gone){A.a.root.vis
  let moving=0,mya=A.ya;if(!A.hold){const d=Math.hypot(tx-A.x,tz-A.z);if(d>.7){const dir=d>3.5&&C.D&&!los(A.x,A.z,p.x,p.z)?pathDir(C.D,A,p.x,p.z):[(tx-A.x)/d,(tz-A.z)/d,d];const s=Math.min(6.4,d*2.2);moveE(A,dir[0]*s*dt,dir[1]*s*dt,.32);moving=s;mya=Math.atan2(dir[0],dir[1])}}
  let t=null;if(A.gun!='none'){let bd=20;alive().forEach(e=>{if(e.idle||e===C.latch)return;const d=dist(A,e);if(d<bd&&los(A.x,A.z,e.x,e.z)){bd=d;t=e}})}
  let fy=moving?mya:A.ya;if(t){fy=Math.atan2(t.x-A.x,t.z-A.z)}A.ya+=((((fy-A.ya)+PI*3)%(PI*2))-PI)*Math.min(1,dt*7);
- a.root.position.set(A.x,0,A.z);a.root.rotation.y=A.ya;a.loco(moving>.5?(moving>4.8?'Jog_Fwd_Loop':'Walk_Loop'):'Idle_Loop','Pistol_Idle_Loop',.25,1);
+ a.root.position.set(A.x,0,A.z);a.root.rotation.y=A.ya;a.loco(moving>.5?(moving>4.8?'Jog_Fwd_Loop':'Walk_Loop'):'Idle_Loop',a.gun&&a.gun.visible?'Pistol_Idle_Loop':'Idle_Loop',.25,1);
  if(t&&C.t-A.fT>(A.gun=='smart'?.1:.2)){A.fT=C.t;a.root.updateMatrixWorld(true);const mz=a.muzzle.getWorldPosition(new THREE.Vector3());const tp=new THREE.Vector3(t.x+(rnd()-.5)*.3,t.k=='hugger'?.2:1.1,t.z+(rnd()-.5)*.3);dmgE(t,.5,tp);const d=tp.clone().sub(mz).normalize();muzzleFlash(mz,d,A.gun=='smart');tracer(mz,tp);if(i==0&&rnd()<.5)SFX.rifle()}})}
 // ---------------- interactions ----------------
 export function g(k,i){const[x,z]=WD.mk(k,i);return{x,z}}

@@ -1,6 +1,6 @@
 // ===== CHAPTER 7 — THE QUEEN'S LAIR =====
-import * as G from './game.js?v=13';
-import {resinDress,wallCocoons,spawner,fmt,TS} from './hive.js?v=13';
+import * as G from './game.js?v=14';
+import {resinDress,wallCocoons,spawner,fmt,TS} from './hive.js?v=14';
 const {THREE,PI,rnd,LV,PR,WD,dist}=G;
 const MAP7=["#####################",
 "#c.......c.Q.c.....c#",
@@ -29,7 +29,7 @@ LV[7]={init(){const C=G.C;eggs=[];qe=null;G.env({fog:.055,fogCol:0x0c0a08,hemi:.
  for(const[x,z]of WD.W.mk.e){const g=G.egg();g.scale.setScalar(1.5);g.position.set(x+(rnd()-.5),0,z+(rnd()-.5));C.g.add(g);eggs.push(g)}
  const[nx,nz]=WD.mk('N');const coc=PR.cocoon();coc.position.set(nx,.05,nz-.2);coc.scale.set(.75,.75,.75);C.g.add(coc);C.coc=coc;
  nw=G.cast('newt','newt');G.place(nw,nx,nz+.1,0);nw.play('Idle_Loop',0);
- const[px,pz]=WD.mk('L');Object.assign(C.p,{x:px,z:pz-.5,ya:PI,pitch:-.05});C.pa=G.cast('player','ripley',{gun:'rifle'});G.place(C.pa,px,pz,PI);C.pa.loco('Idle_Loop','Pistol_Idle_Loop',0);
+ const[px,pz]=WD.mk('L');Object.assign(C.p,{x:px,z:pz-.5,ya:PI,pitch:-.05});C.pa=G.cast('player','ripley',{gun:'combo'});G.place(C.pa,px,pz,PI);C.pa.loco('Idle_Loop','Pistol_Idle_Loop',0);
  C.weaps=['rifle','flame','gren'];C.ammo.gren=12;G.updGun();
  sp=spawner(WD.W.mk.S,{max:4,every:2,minD:7});sp.on=false;
  for(const[x,z]of[[27,33],[30,21]])G.spawn('alien',x,z,{idle:1,wake:7});

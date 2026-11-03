@@ -56,7 +56,7 @@ const rp=new RenderPass(scene,camera);composer.addPass(rp);
 let ao=null;if(E.P.ao){ao=new GTAOPass(scene,camera,1,1);ao.output=GTAOPass.OUTPUT.Default;ao.blendIntensity=E.q=='ultra'?1:.85;ao.updateGtaoMaterial({radius:E.q=='ultra'?.65:.5,distanceExponent:1.5,thickness:1,scale:1});if(E.q=='ultra')ao.updatePdMaterial({lumaPhi:10,depthPhi:2,normalPhi:3,radius:4,rings:2,samples:8});{const _s=ao.setSize.bind(ao);ao.setSize=(w,h)=>_s(Math.max(1,w*.5|0),Math.max(1,h*.5|0))}composer.addPass(ao)}
 // depth of field, cutscenes only (Ultra)
 export const dof=E.P.dof?new BokehPass(scene,camera,{focus:3,aperture:.0035,maxblur:.006}):null;if(dof){dof.enabled=false;composer.addPass(dof)}
-export const bloom=new UnrealBloomPass(new THREE.Vector2(256,256),E.q=='ultra'?.45:.45,.45,.88);if(E.P.bloom)composer.addPass(bloom);
+export const bloom=new UnrealBloomPass(new THREE.Vector2(256,256),.28,.35,.95);if(E.P.bloom)composer.addPass(bloom);
 composer.addPass(new OutputPass());
 // cinematic finish: screen-space light shafts toward the brightest on-screen lamp, chromatic fringe, film grain, vignette.
 const CineShader={uniforms:{tDiffuse:{value:null},uT:{value:0},uGrain:{value:.03},uCA:{value:.0012},uL:{value:new THREE.Vector2(.5,.5)},uLS:{value:0},uRes:{value:new THREE.Vector2(1,1)},uSteps:{value:E.q=='ultra'?24:12}},

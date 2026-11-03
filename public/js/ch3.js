@@ -1,6 +1,6 @@
 // ===== CHAPTER 3 — THE NEST =====
-import * as G from './game.js?v=13';
-import {resinDress,wallCocoons,spawner,fmt,clearForDrive,cockpit,TS} from './hive.js?v=13';
+import * as G from './game.js?v=14';
+import {resinDress,wallCocoons,spawner,fmt,clearForDrive,cockpit,TS} from './hive.js?v=14';
 const {THREE,PI,rnd,LV,PR,WD,dist}=G;
 const MAP3=["###################",
 "#S...c.......c...S#",
@@ -41,7 +41,7 @@ LV[3]={init(){const C=G.C;G.env({fog:.05,fogCol:0x0a100e,hemi:.3,hemiCol:0x7a948
  const sps=WD.W.mk.S;sp=spawner(sps,{max:5,every:2.2,minD:7});sp.on=false;
  const pl=C.pa;
  G.cut([{d:3.6,sub:'Beneath the atmosphere processor, the corridors are grown over with glossy, ribbed resin.',actors:1,setup:()=>{for(const a of[pl,hk.a,hu.a,ap.a])a.loco('Walk_Loop','Idle_Loop',0)},
-   upd:(u,dt)=>{for(const a of[pl,hk.a,hu.a,ap.a])a.root.position.z-=dt*.6},cam:u=>({e:[px+.3,1.75,pz-5.4+u*.4],c:[px,1.3,pz],fov:50}),flash:40},
+   upd:(u,dt)=>{for(const a of[pl,hk.a,hu.a,ap.a])a.root.position.z-=dt*.6},cam:()=>G.CU(pl,2.1,.65,-.08,46),flash:40},
   {d:3,sub:'Over the radio, Gorman orders them to hold fire near the cooling plant.',setup:()=>{for(const a of[pl,hk.a,hu.a,ap.a])a.loco('Idle_Loop','Idle_Loop',.2);ap.a.root.rotation.y=PI},cam:()=>G.CU(ap.a,1.0,.3)},
   {d:2.8,sub:'Vasquez ignores him and keeps the smartgun hot.',cam:()=>G.CU(pl,.95,-.3)},
   {d:3,sub:'In the APC, Ripley watches the helmet feeds, uneasy.',cam:()=>G.CU(rp,.9,.3,.02,36)}],

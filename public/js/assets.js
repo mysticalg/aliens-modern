@@ -1,9 +1,9 @@
 // Texture/material library, procedural textures, character factory (CC0 Quaternius rigs + UAL animations).
-import {THREE,E,renderer} from './engine.js?v=13';
+import {THREE,E,renderer} from './engine.js?v=14';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
 import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js';
-export {RoundedBoxGeometry};
+export {RoundedBoxGeometry,G};
 import {MeshoptDecoder} from 'three/addons/libs/meshopt_decoder.module.js';
 const TL=new THREE.TextureLoader(),GL=new GLTFLoader();GL.setMeshoptDecoder(MeshoptDecoder);
 const ANI=renderer.capabilities.getMaxAnisotropy();
@@ -98,7 +98,8 @@ function setupRB(a,o){const vm=SkeletonUtils.clone(G['rb/'+o.rb].scene);a.root.a
 function rbMat(m,o){const n=m.name||'';const r=m.clone();r.envMapIntensity=1.1;if(/opacity/.test(n)){r.transparent=false;r.alphaTest=.45;r.side=THREE.DoubleSide;r.depthWrite=true}
  if(/head/.test(n)){r.roughness=.5;if(r.map){r.emissiveMap=r.map;r.emissive=new THREE.Color(1,.93,.86);r.emissiveIntensity=.2}}else if(/helmet|equipment/.test(n)){r.roughness=.62;r.metalness=.05}else r.roughness=.85;
  if(/helmet/.test(n)&&!o.helmet)r.visible=false;if(/knife/.test(n))r.roughness=.4;return r}
-export class Actor{constructor(o){this.o=o;const sex=o.sex||'m';const s=SkeletonUtils.clone(G[sex=='f'?'female':'male'].scene);this.root=new THREE.Group();this.body=s;this.root.add(s);this.faces=[];
+export const RB_ON=/[?&]rb\b/.test(location.search);
+export class Actor{constructor(o){if(o.rb&&!RB_ON){o=Object.assign({},o);delete o.rb}this.o=o;const sex=o.sex||'m';const s=SkeletonUtils.clone(G[sex=='f'?'female':'male'].scene);this.root=new THREE.Group();this.body=s;this.root.add(s);this.faces=[];
   if(o.scale&&!o.rb)s.scale.setScalar(o.scale);this.bones={};
   s.traverse(b=>{if(b.isBone)this.bones[b.name]=b;if(b.isMesh&&o.rb){b.visible=false}else if(b.isMesh){b.castShadow=true;b.receiveShadow=true;b.frustumCulled=false;
    const mn=b.material.name||'';if(/Superhero/.test(mn))b.material=dressMat(b.material,o,sex);else if(/Hair/.test(mn)){b.material=getHairMat(b.material,o.browCol||o.hairCol||[.15,.1,.07])}}});
@@ -126,7 +127,9 @@ export class Actor{constructor(o){this.o=o;const sex=o.sex||'m';const s=Skeleton
   const cam=new THREE.Mesh(boxGeo(.03,.04,.07,1,.008),plain(0x111111,.4,.6));this.attach('Head',cam,new THREE.Vector3(.14*sc,h.y+.12,h.z+.04))}
  bandana(){const h=this.bpos('Head');const rb=!!this.o.rb;const m=new THREE.Mesh(new THREE.TorusGeometry(rb?.088:.115,rb?.014:.03,8,28),plain(rb?0x4a1410:0x8a1a12,.9));m.rotation.x=Math.PI/2+(rb?.22:0);m.scale.set(1,rb?1.2:1.15,rb?.75:1);this.attach('Head',m,new THREE.Vector3(0,h.y+(rb?.085:.15),h.z+(rb?.005:-.005)))}
  glasses(){const h=this.bpos('Head');const g=new THREE.Group();for(const s of[-1,1]){const r=new THREE.Mesh(new THREE.TorusGeometry(.024,.004,6,16),plain(0x222222,.3,.8));r.position.x=s*.035;g.add(r)}this.attach('Head',g,new THREE.Vector3(0,h.y+.1,h.z+.12))}
- giveGun(kind){const g=model(kind=='smart'?'gun_rifle':kind=='pistol'?'gun_pistol':'gun_rifle');if(kind=='smart')g.scale.setScalar(1.3);
+ giveGun(kind){const nu=(kind=='rifle'||kind=='combo')&&G.gun_m41&&this.o.rb;if(nu){const g=model(kind=='combo'&&G.gun_combo?'gun_combo':'gun_m41');const w=new THREE.Group();w.add(g);g.rotation.y=Math.PI/2;this.gun=w;this.root.add(w);this.aimPitch=0;this.gunMode='aim';
+   this.muzzle=new THREE.Object3D();g.add(this.muzzle);this.muzzle.position.set(-.72,.075,0);return}
+  const g=model(kind=='smart'?'gun_rifle':kind=='pistol'?'gun_pistol':'gun_rifle');if(kind=='smart')g.scale.setScalar(1.3);
   const w=new THREE.Group();w.add(g);g.rotation.y=Math.PI/2;g.position.set(0,0,-.1);g.scale.multiplyScalar(.82);this.gun=w;this.root.add(w);this.aimPitch=0;this.gunMode='aim';
   this.muzzle=new THREE.Object3D();g.add(this.muzzle);this.muzzle.position.set(-.8,.1,0)}
  placeGun(){const w=this.gun;if(!w)return;if(this.gunMode=='hide'){w.visible=false;return}w.visible=true;if(this.vis&&this.gunMode!='stow')return this._rbGun(w);const h=this.vb.hand_r.getWorldPosition(_t1);this.root.worldToLocal(h);
@@ -139,6 +142,10 @@ export class Actor{constructor(o){this.o=o;const sex=o.sex||'m';const s=Skeleton
   w.position.set(c.x+ox*cy+oz*sy,c.y+oy,c.z-ox*sy+oz*cy);w.updateMatrixWorld(true);
   const rq=this.root.getWorldQuaternion(_q3);const g1=_ik.g1.set(0,-.05,0).applyMatrix4(w.matrixWorld),g2=_ik.g2.set(0,-.05,.3).applyMatrix4(w.matrixWorld);
   ik(V.upperarm_r,V.lowerarm_r,V.hand_r,g1,_ik.p.set(rs*.6,-1,-.3).applyQuaternion(rq));ik(V.upperarm_l,V.lowerarm_l,V.hand_l,g2,_ik.p.set(-rs*.6,-1,-.2).applyQuaternion(rq))}
+ _relaxArms(){// Rocketbox rest pose leaves unarmed arms splayed in idle/walk loops: clamp the upper-arm swing toward the body
+  const n=this.curN||(this.locoN&&this.locoN.join());if(!n||!/Idle_Loop|Walk|Jog|Run|Sprint/.test(n)||/Sit|Driv|Kneel|Fix/.test(n))return;this.root.updateMatrixWorld(true);const rq=this.root.getWorldQuaternion(_q3),V=this.vis;
+  for(const s of['l','r']){const u=V['upperarm_'+s],l=V['lowerarm_'+s];if(!u||!l)continue;const S=u.getWorldPosition(_ik.S),E=l.getWorldPosition(_ik.E);const d=_ik.a.copy(E).sub(S).normalize();
+   const dn=_ik.n.set(0,-1,0);const ang=d.angleTo(dn),mx=.3;if(ang<=mx)continue;const ax=_ik.p.crossVectors(dn,d).normalize();const t=_ik.b.copy(dn).applyAxisAngle(ax,mx);rotTo(u,d.clone(),t)}}
  play(n,fade=.25,o={}){const a=this.acts[n];if(!a)return;if(this.lay){for(const k in this.lay)this.lay[k]&&this.lay[k].fadeOut(fade);this.lay=null}if(this.cur===a&&!o.restart)return a;a.reset();a.enabled=true;a.setEffectiveTimeScale(o.ts||1);a.setEffectiveWeight(1);
   if(o.once){a.setLoop(THREE.LoopOnce,1);a.clampWhenFinished=true}else a.setLoop(THREE.LoopRepeat);
   if(this.cur&&fade>0)a.crossFadeFrom(this.cur,fade,false);else if(this.cur)this.cur.stop();a.play();this.cur=a;this.curN=n;return a}
@@ -158,7 +165,7 @@ export class Actor{constructor(o){this.o=o;const sex=o.sex||'m';const s=Skeleton
   const ex=this.expr||{};for(let i=0;i<this.faces.length;i++){const m=this.faces[i],d=this.morph[i],I=m.morphTargetInfluences;const S=(n,v)=>{const j=d[n];if(j!==undefined)I[j]=v};
    S('AK_09_EyeBlinkLeft',bl);S('AK_10_EyeBlinkRight',bl);S('AK_25_JawOpen',ex.jaw||0);S('AK_44_MouthSmileLeft',ex.smile||0);S('AK_45_MouthSmileRight',ex.smile||0);
    S('AK_01_BrowDownLeft',ex.brow||0);S('AK_02_BrowDownRight',ex.brow||0);S('AK_03_BrowInnerUp',ex.fear||0);S('AK_30_MouthFrownLeft',ex.frown||0);S('AK_31_MouthFrownRight',ex.frown||0)}}
- update(dt){this.mixer.update(dt);this._twist();if(this.rt)this._rt(dt);if(this.post)this.post(this);if(this.gun){this.root.updateMatrixWorld(true);this.placeGun()}}}
+ update(dt){this.mixer.update(dt);this._twist();if(this.rt)this._rt(dt);if(this.vis&&!this.gun)this._relaxArms();if(this.post)this.post(this);if(this.gun){this.root.updateMatrixWorld(true);this.placeGun()}}}
 const _ik={g1:new THREE.Vector3(),g2:new THREE.Vector3(),p:new THREE.Vector3(),S:new THREE.Vector3(),E:new THREE.Vector3(),W:new THREE.Vector3(),n:new THREE.Vector3(),a:new THREE.Vector3(),b:new THREE.Vector3(),q:new THREE.Quaternion(),q2:new THREE.Quaternion()};
 function rotTo(b,v1,v2){const I=_ik;if(v1.lengthSq()<1e-8||v2.lengthSq()<1e-8)return;I.q.setFromUnitVectors(v1.normalize(),v2.normalize());b.getWorldQuaternion(I.q2);I.q.multiply(I.q2);b.parent.getWorldQuaternion(I.q2);b.quaternion.copy(I.q2.invert().multiply(I.q));b.updateMatrixWorld(true)}
 function ik(up,lo,hd,T,pole){if(!up||!lo||!hd)return;const I=_ik;up.getWorldPosition(I.S);lo.getWorldPosition(I.E);hd.getWorldPosition(I.W);const a=I.E.distanceTo(I.S),b=I.W.distanceTo(I.E);
