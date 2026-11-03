@@ -1,6 +1,6 @@
 // ===== CHAPTER 5 — MEDLAB =====
-import * as G from './game.js?v=7';
-import {fmt,TS} from './hive.js?v=7';
+import * as G from './game.js?v=8';
+import {fmt,TS} from './hive.js?v=8';
 const {THREE,PI,rnd,LV,PR,WD,dist}=G;
 const MAP5=["###############",
 "#.....k.k.....#",

@@ -1,7 +1,7 @@
 // Grid maps -> modular PBR level geometry, collision, navigation, line of sight.
 import {Reflector} from 'three/addons/objects/Reflector.js';
-import {THREE,scene,lightSrc,LS,E} from './engine.js?v=7';
-import {pbr,boxGeo,emiss,plain,model,resinMat} from './assets.js?v=7';
+import {THREE,scene,lightSrc,LS,E} from './engine.js?v=8';
+import {pbr,boxGeo,emiss,plain,model,resinMat} from './assets.js?v=8';
 export const CS=3,WH=3.4;
 export const W={map:null,mw:0,mh:0,mk:{},open:{},group:null,solidSet:'#FWKtcgDXb',doors:[],steam:[],extra:[],camBlock:[]};
 export function clearWorld(){if(W.reflector){W.reflector.dispose();W.reflector=null}if(W.group){W.group.traverse(o=>{if(o.isMesh||o.isInstancedMesh){o.geometry.dispose&&o.geometry.dispose()}});W.group.removeFromParent()}W.group=new THREE.Group();scene.add(W.group);LS.list.length=0;W.map=null;W.doors=[];W.steam=[];W.mk={};W.open={};W.colliders=[];W.camBlock=[];return W.group}
@@ -88,5 +88,5 @@ export function wetFloor(floors,amt){let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;for(const
    #include <tonemapping_fragment>
    #include <colorspace_fragment>
   }`};
- const R=new Reflector(new THREE.PlaneGeometry(w,d),{textureWidth:innerWidth*.5|0,textureHeight:innerHeight*.5|0,clipBias:.003,shader:sh});
+ const R=new Reflector(new THREE.PlaneGeometry(w,d),{textureWidth:innerWidth*.35|0,textureHeight:innerHeight*.35|0,clipBias:.003,shader:sh});
  R.material.transparent=true;R.material.depthWrite=false;R.rotation.x=-Math.PI/2;R.position.set((x0+x1)/2,.004,(z0+z1)/2);R.renderOrder=1;W.group.add(R);W.reflector=R;return R}

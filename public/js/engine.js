@@ -16,7 +16,7 @@ const PRESETS={
  low:{pr:.7,prMax:1,ao:false,bloom:true,shadow:512,lights:3,tex:'lo',particles:.5},
  medium:{pr:1,prMax:1.25,ao:false,bloom:true,shadow:1024,lights:5,tex:'',particles:.8},
  high:{pr:1,prMax:1.75,ao:true,bloom:true,shadow:2048,lights:6,tex:'',particles:1,cine:1,cone:1},
- ultra:{pr:1,prMax:2,ao:true,bloom:true,shadow:4096,lights:10,tex:'hi',particles:1.7,cine:2,cone:1,dof:1,reflect:1,dust:1,shadowLamps:2}};
+ ultra:{pr:1,prMax:2,ao:true,bloom:true,shadow:4096,lights:8,tex:'hi',particles:1.7,cine:2,cone:1,dof:1,reflect:1,dust:1,shadowLamps:1}};
 export const QLIST=['low','medium','high','ultra'];
 // GPU sniff: desktop RTX / RX 6000+ / Arc / Apple M-Pro class get Ultra by default
 export const GPU=(()=>{try{const c=document.createElement('canvas').getContext('webgl2');const x=c.getExtension('WEBGL_debug_renderer_info');return x?c.getParameter(x.UNMASKED_RENDERER_WEBGL):c.getParameter(c.RENDERER)}catch(e){return''}})();
@@ -37,7 +37,7 @@ export const sun=new THREE.DirectionalLight(0x8899aa,0);sun.position.set(20,40,1
 export const muzzle=new THREE.PointLight(0xffc070,0,7,1.8);scene.add(muzzle);
 export const keyL=new THREE.SpotLight(0xffeedd,0,9,.5,.6,1.2);scene.add(keyL,keyL.target); // cutscene face key light
 export const rimL=new THREE.PointLight(0x88aacc,0,6,1.5);scene.add(rimL);
-export const pool=[];for(let i=0;i<E.P.lights;i++){const l=new THREE.PointLight(0xffffff,0,12,1.6);if(i<(E.P.shadowLamps||0)){l.castShadow=true;l.shadow.mapSize.set(1024,1024);l.shadow.bias=-.002;l.shadow.normalBias=.03;l.shadow.camera.near=.2;l.shadow.camera.far=14}scene.add(l);pool.push(l)}
+export const pool=[];for(let i=0;i<E.P.lights;i++){const l=new THREE.PointLight(0xffffff,0,12,1.6);if(i<(E.P.shadowLamps||0)){l.castShadow=true;l.shadow.mapSize.set(512,512);l.shadow.bias=-.002;l.shadow.normalBias=.03;l.shadow.camera.near=.2;l.shadow.camera.far=14}scene.add(l);pool.push(l)}
 export const fxPool=[];for(let i=0;i<2;i++){const l=new THREE.PointLight(0xff8840,0,10,1.6);scene.add(l);fxPool.push(l)} // explosions / flame
 // registry of world light sources; nearest are assigned to the pool each frame
 export const LS={list:[]};
@@ -53,7 +53,7 @@ export async function loadEnv(){const tex=await new RGBELoader().loadAsync('tex/
 // ---- composer ----
 export const composer=new EffectComposer(renderer);
 const rp=new RenderPass(scene,camera);composer.addPass(rp);
-let ao=null;if(E.P.ao){ao=new GTAOPass(scene,camera,1,1);ao.output=GTAOPass.OUTPUT.Default;ao.blendIntensity=E.q=='ultra'?1:.85;ao.updateGtaoMaterial({radius:E.q=='ultra'?.65:.5,distanceExponent:1.5,thickness:1,scale:1});if(E.q=='ultra')ao.updatePdMaterial({lumaPhi:10,depthPhi:2,normalPhi:3,radius:6,rings:2,samples:16});composer.addPass(ao)}
+let ao=null;if(E.P.ao){ao=new GTAOPass(scene,camera,1,1);ao.output=GTAOPass.OUTPUT.Default;ao.blendIntensity=E.q=='ultra'?1:.85;ao.updateGtaoMaterial({radius:E.q=='ultra'?.65:.5,distanceExponent:1.5,thickness:1,scale:1});if(E.q=='ultra')ao.updatePdMaterial({lumaPhi:10,depthPhi:2,normalPhi:3,radius:4,rings:2,samples:8});composer.addPass(ao)}
 // depth of field, cutscenes only (Ultra)
 export const dof=E.P.dof?new BokehPass(scene,camera,{focus:3,aperture:.0035,maxblur:.006}):null;if(dof){dof.enabled=false;composer.addPass(dof)}
 export const bloom=new UnrealBloomPass(new THREE.Vector2(256,256),E.q=='ultra'?.62:.55,.5,.82);if(E.P.bloom)composer.addPass(bloom);
