@@ -1,5 +1,5 @@
 // ===== CHAPTER 2 — HADLEY'S HOPE =====
-import * as G from './game.js';
+import * as G from './game.js?v=5';
 const {THREE,PI,lerp,sm,rnd,LV,PR,WD,dist}=G;
 const MAP2=["###############",
 "#.....#.......#",
@@ -60,7 +60,7 @@ LV[2]={init(){const C=G.C;G.env({fog:.05,fogCol:0x0b0f12,hemi:.22,hemiCol:0x7d8c
   if(C.stage==4&&dist(p,C.goal)<3){C.stage=5;this.newt()}},
  newt(){const C=G.C;const[nx,nz]=WD.mk('N');const nw=G.cast('newt','newt');G.place(nw,nx-1.4,nz-2.2,0);nw.play('Crouch_Idle_Loop',0);const rp=G.cast('ripley','ripley');G.place(rp,nx-1.2,nz+.6,PI);rp.play('Idle_Loop',0);
   C.pa.root.visible=false;C.pa.hideLock=1;C.allies.forEach(a=>a.gone=true);
-  G.cut([{d:3.2,sub:'Under a table, behind a vent grille: a little girl, filthy and terrified.',cam:()=>G.CU(nw,1.1,.3,.06,38)},
-   {d:3,sub:'She bolts into the vents. Ripley crawls in after her.',setup:()=>{rp.play('Crouch_Fwd_Loop',.3);nw.play('Crouch_Fwd_Loop',.2);nw.root.rotation.y=-PI/2},upd:(u,dt)=>{nw.root.position.x+=dt*.5;rp.root.position.z-=dt*.4},cam:()=>({e:[nx+1.6,1.3,nz+1.5],c:[nx-1.3,.6,nz-1.4],fov:50})},
-   {d:3.4,sub:'Her name is Newt. The only survivor of Hadley\'s Hope.',setup:()=>{nw.root.position.set(nx+.6,0,nz-1.2);nw.play('Crouch_Idle_Loop',.3);nw.root.rotation.y=.4;rp.play('Crouch_Idle_Loop',.3)},cam:()=>G.CU(nw,1.0,.28,.06,38)}],G.winCh)},
+  G.cut([{d:3.2,sub:'Under a table, behind a vent grille: a little girl, filthy and terrified.',cam:()=>G.CU(nw,.56,.15,.03,26)},
+   {d:3,sub:'She bolts into the vents. Ripley crawls in after her.',setup:()=>{rp.play('Crouch_Fwd_Loop',.3);nw.play('Crouch_Fwd_Loop',.2);nw.root.rotation.y=-PI/2},upd:(u,dt)=>{nw.root.position.x+=dt*.5;rp.root.position.z-=dt*.4},cam:()=>({e:[nx+.3,1.15,nz+.4],c:[nx-1,.55,nz-1.8],fov:44})},
+   {d:3.4,sub:'Her name is Newt. The only survivor of Hadley\'s Hope.',setup:()=>{nw.root.position.set(nx+.6,0,nz-1.2);nw.play('Crouch_Idle_Loop',.3);nw.root.rotation.y=.4;rp.play('Crouch_Idle_Loop',.3)},cam:()=>G.CU(nw,.55,-.15,.03,26)}],G.winCh)},
  always(dt){for(const t of tanks){t.ph+=dt;t.h.root.position.y=1.1+Math.sin(t.ph*.8)*.06;t.h.update(dt,{speed:.3})}}};

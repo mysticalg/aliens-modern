@@ -1,5 +1,5 @@
 // Particles (steam, sparks, acid, flame, smoke, rain), tracers, muzzle flashes, decals, camera shake, explosions.
-import {THREE,scene,camera,muzzle,fxPool,E,MOBILE} from './engine.js';
+import {THREE,scene,camera,muzzle,fxPool,E,MOBILE} from './engine.js?v=5';
 const rnd=Math.random;
 function spriteTex(kind){const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d');
  if(kind=='soft'){const g=x.createRadialGradient(32,32,0,32,32,32);g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.35,'rgba(255,255,255,.55)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,64,64)}
@@ -26,7 +26,7 @@ class PSys{constructor(n,tex,blend,fogMix=1){this.n=n;this.i=0;const g=new THREE
   S[k]=this.S0[k]*(1+this.R[k]*u);C[k*4+3]=this.A[k]*(u<.15?u/.15:1)*(1-u)*(1-u*.2)}
   const g=this.pts.geometry;g.attributes.position.needsUpdate=true;g.attributes.color.needsUpdate=true;g.attributes.size.needsUpdate=true}}
 export const FX={};const _c=new THREE.Color(),_v=new THREE.Vector3(),_p=new THREE.Vector3();
-export function initFX(){const m=MOBILE?.5:1;
+export function initFX(){const m=E.P.particles||1;
  FX.add=new PSys(1400*m|0,TX.soft,THREE.AdditiveBlending);   // sparks, flame, acid glow
  FX.smoke=new PSys(700*m|0,TX.smoke,THREE.NormalBlending);  // steam/smoke
  // tracers
@@ -46,7 +46,7 @@ export function decal(kind,p,n,size){const im=FX.dec[kind];const k=im.i;im.i=(im
  _p.copy(p).addScaledVector(n,.012);S1.set(size,size,1);M4.compose(_p,Q,S1);im.setMatrixAt(k,M4);im.instanceMatrix.needsUpdate=true}
 export function tracer(a,b){FX.trs.push({a:a.clone(),b:b.clone(),t:0})}
 export function muzzleFlash(p,dir,big){const m=FX.mfs.find(m=>m.t<=0)||FX.mfs[0];m.s.position.copy(p).addScaledVector(dir,.08);m.s.material.rotation=rnd()*6.28;m.s.scale.setScalar((big?.75:.45)*(.8+rnd()*.4));m.t=.05;m.s.visible=true;
- muzzle.position.copy(p);muzzle.intensity=big?40:26;FX.muz=.05}
+ muzzle.position.copy(p);muzzle.distance=7;muzzle.intensity=big?40:26;FX.muz=.05}
 export function sparks(p,n,dir,col=0xffb050){_c.set(col);for(let i=0;i<n;i++){_v.set((rnd()-.5)*3,rnd()*2.5,(rnd()-.5)*3);if(dir)_v.addScaledVector(dir,2.5);FX.add.emit(p,_v,.25+rnd()*.35,.035,_c,1,-.5,9)}}
 export function acidBurst(p,n=14){_c.setRGB(.5,1,.12);for(let i=0;i<n;i++){_v.set((rnd()-.5)*4,1+rnd()*3,(rnd()-.5)*4);FX.add.emit(p,_v,.6+rnd()*.5,.06,_c,.8,0,9)}
  for(let i=0;i<4;i++){_v.set((rnd()-.5)*.4,.5+rnd()*.5,(rnd()-.5)*.4);_c.setRGB(.55,.62,.4);FX.smoke.emit(p,_v,1.6,.45,_c,.35,2.5,0)}}

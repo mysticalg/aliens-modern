@@ -1,9 +1,10 @@
 // Grid maps -> modular PBR level geometry, collision, navigation, line of sight.
-import {THREE,scene,lightSrc,LS} from './engine.js';
-import {pbr,boxGeo,emiss,plain,model,resinMat} from './assets.js';
+import {Reflector} from 'three/addons/objects/Reflector.js';
+import {THREE,scene,lightSrc,LS,E} from './engine.js?v=5';
+import {pbr,boxGeo,emiss,plain,model,resinMat} from './assets.js?v=5';
 export const CS=3,WH=3.4;
-export const W={map:null,mw:0,mh:0,mk:{},open:{},group:null,solidSet:'#FWKtcgDXb',doors:[],steam:[],extra:[]};
-export function clearWorld(){if(W.group){W.group.traverse(o=>{if(o.isMesh||o.isInstancedMesh){o.geometry.dispose&&o.geometry.dispose()}});W.group.removeFromParent()}W.group=new THREE.Group();scene.add(W.group);LS.list.length=0;W.map=null;W.doors=[];W.steam=[];W.mk={};W.open={};W.colliders=[];return W.group}
+export const W={map:null,mw:0,mh:0,mk:{},open:{},group:null,solidSet:'#FWKtcgDXb',doors:[],steam:[],extra:[],camBlock:[]};
+export function clearWorld(){if(W.reflector){W.reflector.dispose();W.reflector=null}if(W.group){W.group.traverse(o=>{if(o.isMesh||o.isInstancedMesh){o.geometry.dispose&&o.geometry.dispose()}});W.group.removeFromParent()}W.group=new THREE.Group();scene.add(W.group);LS.list.length=0;W.map=null;W.doors=[];W.steam=[];W.mk={};W.open={};W.colliders=[];W.camBlock=[];return W.group}
 export function setMap(rows){const w=Math.max(...rows.map(r=>r.length));W.map=rows.map(r=>r.padEnd(w,' '));W.mw=w;W.mh=rows.length;W.mk={};W.open={};
  W.map.forEach((r,j)=>[...r].forEach((ch,i)=>{if(!'# .'.includes(ch))(W.mk[ch]=W.mk[ch]||[]).push([i*CS,j*CS])}))}
 export const mk=(ch,i)=>W.mk[ch][i||0];
@@ -32,7 +33,8 @@ function nearOpen(i,j){for(let dj=-1;dj<=1;dj++)for(let di=-1;di<=1;di++){const 
 const H1=n=>{const x=Math.sin(n*127.1+311.7)*43758.5453;return x-Math.floor(x)};
 export function add(o){W.group.add(o);return o}
 export function boxM(x,y,z,w,h,d,mat,o={}){const m=new THREE.Mesh(boxGeo(w,h,d,o.t||2,o.r||0),mat);m.position.set(x,y,z);if(o.ry)m.rotation.y=o.ry;m.castShadow=o.cast!==false;m.receiveShadow=true;W.group.add(m);return m}
-export function prop(name,x,z,ry=0,s=1,y=0){const m=model(name);m.position.set(x,y,z);m.rotation.y=ry;m.scale.setScalar(s);W.group.add(m);return m}
+export function prop(name,x,z,ry=0,s=1,y=0,col=true){const m=model(name);m.position.set(x,y,z);m.rotation.y=ry;m.scale.setScalar(s);W.group.add(m);W.camBlock.push(m);if(col)W.colliders.push({x,z,hw:.45*s+.05,hd:.45*s+.05});return m}
+export function block(o,col){W.camBlock.push(o);if(col)W.colliders.push(col);return o}
 export function buildMap(o={}){const wallM=pbr(o.wall||'wall',{color:o.wallTint??0xb8c0c4}),floorM=pbr(o.floor||'plate',{color:o.floorTint??0x9aa0a0}),ceilM=pbr(o.ceil||'panel',{color:0x5a6066});
  const walls=[],floors=[],ceils=[],trims=[],lamps=[],pipes=[],strips=[];
  W.map.forEach((r,j)=>[...r].forEach((ch,i)=>{const x=i*CS,z=j*CS;if(ch==' ')return;
@@ -48,6 +50,7 @@ export function buildMap(o={}){const wallM=pbr(o.wall||'wall',{color:o.wallTint?
  inst(boxGeo(CS+.06,.22,CS+.06,1),pbr('panel',{color:0x40464a}),walls.map(w=>[w[0],.11,w[2]]),false);
  inst(boxGeo(CS+.08,.14,CS+.08,1),pbr('panel',{color:0x2e3236}),walls.map(w=>[w[0],WH-.6,w[2]]),false);
  inst(boxGeo(CS,.1,CS,CS),floorM,floors.map(f=>[f[0],-.05,f[2]]),false);
+ if(E.P.reflect&&floors.length&&!o.dry)wetFloor(floors,o.wet??.32);
  if(ceils.length)inst(boxGeo(CS,.1,CS,1.5),ceilM,ceils.map(f=>[f[0],WH+.05,f[2]]),false);
  inst(new THREE.BoxGeometry(.9,.05,.5),emiss(o.lightCol??0xdfefff,2.6),lamps,false);
  inst(new THREE.CylinderGeometry(.08,.08,CS,8).rotateZ(Math.PI/2),plain(0x3a3f42,.4,.8),pipes.map(p=>[p[0],p[1],p[2]+.5,p[3]]),false);
@@ -72,3 +75,18 @@ const greenLamp=emiss(0x30ff60,3);
 let _haz=null;function hazardTex(){if(_haz)return _haz;const c=document.createElement('canvas');c.width=128;c.height=16;const x=c.getContext('2d');for(let i=-2;i<12;i++){x.fillStyle=i%2?'#d8a018':'#141414';x.beginPath();x.moveTo(i*16,0);x.lineTo(i*16+16,0);x.lineTo(i*16,16);x.lineTo(i*16-16,16);x.fill()}
  _haz=new THREE.CanvasTexture(c);_haz.colorSpace=THREE.SRGBColorSpace;return _haz}
 export {hazardTex,H1};
+
+// Ultra: planar reflection layered over the floor, masked into puddles and wet sheen
+export function wetFloor(floors,amt){let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;for(const f of floors){x0=Math.min(x0,f[0]);x1=Math.max(x1,f[0]);z0=Math.min(z0,f[2]);z1=Math.max(z1,f[2])}
+ const w=x1-x0+CS,d=z1-z0+CS;const sh={uniforms:{color:{value:null},tDiffuse:{value:null},textureMatrix:{value:null},uAmt:{value:amt}},
+  vertexShader:'uniform mat4 textureMatrix;varying vec4 vUv;varying vec3 vW;void main(){vUv=textureMatrix*vec4(position,1.);vW=(modelMatrix*vec4(position,1.)).xyz;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
+  fragmentShader:`uniform sampler2D tDiffuse;uniform float uAmt;varying vec4 vUv;varying vec3 vW;
+  float n2(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);float a=fract(sin(dot(i,vec2(127.1,311.7)))*43758.5),b=fract(sin(dot(i+vec2(1,0),vec2(127.1,311.7)))*43758.5),c=fract(sin(dot(i+vec2(0,1),vec2(127.1,311.7)))*43758.5),e=fract(sin(dot(i+vec2(1,1),vec2(127.1,311.7)))*43758.5);return mix(mix(a,b,f.x),mix(c,e,f.x),f.y);}
+  void main(){float m=n2(vW.xz*.55)*.65+n2(vW.xz*1.7)*.35;float pud=smoothstep(.5,.62,m);float sheen=.22+pud*.78;
+   vec2 r=vec2(n2(vW.xz*9.)-.5,n2(vW.zx*9.+3.)-.5)*.012*(1.-pud);vec4 c=texture2DProj(tDiffuse,vUv+vec4(r*vUv.w,0.,0.));
+   float a=uAmt*sheen;gl_FragColor=vec4(c.rgb,a);
+   #include <tonemapping_fragment>
+   #include <colorspace_fragment>
+  }`};
+ const R=new Reflector(new THREE.PlaneGeometry(w,d),{textureWidth:innerWidth*.5|0,textureHeight:innerHeight*.5|0,clipBias:.003,shader:sh});
+ R.material.transparent=true;R.material.depthWrite=false;R.rotation.x=-Math.PI/2;R.position.set((x0+x1)/2,.004,(z0+z1)/2);R.renderOrder=1;W.group.add(R);W.reflector=R;return R}

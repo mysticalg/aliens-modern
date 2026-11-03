@@ -1,11 +1,11 @@
 // Campaign runtime: input, over-the-shoulder controller, combat, AI, allies, drive mode, cutscenes, HUD, menu.
-import {THREE,Q,TOUCH,MOBILE,E,setQuality,canvas,scene,camera,hemi,flash,sun,keyL,rimL,muzzle,updateLights,resize,frameStat,render,LS} from './engine.js';
-import {pbr,plain,emiss,boxGeo,model,actor,Actor} from './assets.js';
-import {Alien,Hugger,Queen,egg} from './creatures.js';
-import * as WD from './world.js';import {W,CS,WH,solid,solidR,moveE,bfs,pathDir,los,rayWorld,clearWorld} from './world.js';
-import {FX,initFX,resetFX,updateFX,tracer,muzzleFlash,sparks,acidBurst,decal,flame,explosion,shake,steam,smokePuff,rain,updateRain} from './fx.js';
-import {audioInit,SFX,tone,noise,music,ambience} from './audio.js';
-import * as PR from './props.js';
+import {THREE,Q,TOUCH,MOBILE,E,setQuality,canvas,scene,camera,hemi,flash,sun,keyL,rimL,muzzle,updateLights,resize,frameStat,render,LS} from './engine.js?v=5';
+import {pbr,plain,emiss,boxGeo,model,actor,Actor} from './assets.js?v=5';
+import {Alien,Hugger,Queen,egg} from './creatures.js?v=5';
+import * as WD from './world.js?v=5';import {W,CS,WH,solid,solidR,moveE,bfs,pathDir,los,rayWorld,clearWorld} from './world.js?v=5';
+import {FX,initFX,resetFX,updateFX,tracer,muzzleFlash,sparks,acidBurst,decal,flame,explosion,shake,steam,smokePuff,rain,updateRain} from './fx.js?v=5';
+import {audioInit,SFX,tone,noise,music,ambience} from './audio.js?v=5';
+import * as PR from './props.js?v=5';
 export const PI=Math.PI,lerp=(a,b,k)=>a+(b-a)*k,cl=(v,a,b)=>Math.max(a,Math.min(b,v)),sm=x=>{x=cl(x,0,1);return x*x*(3-2*x)},rnd=Math.random;
 export const dist=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
 export const AUTO=Q.has('auto');
@@ -47,7 +47,7 @@ export function env(o){if(o.fog!=null)scene.fog.density=o.fog;if(o.fogCol!=null)
  if(o.sun!=null){sun.intensity=o.sun;if(o.sunCol)sun.color.set(o.sunCol)}if(o.rain!=null)rain(o.rain);C.wind=o.wind||0;ambience({rain:o.rain,wind:o.wind,hum:o.hum})}
 export function cut(list,next){C.mode='cut';for(const k in C.cast){const a=C.cast[k];if(a.gun&&a.gunMode=='aim'){a._gm='aim';a.gunMode='low';if(a.locoN&&a.locoN[1]=='Pistol_Idle_Loop'&&!a.curN)a.loco(a.locoN[0],'Idle_Loop',.2)}}C.cut={list,i:-1,u:0,next};nextShot();document.body.classList.add('cut');document.body.classList.remove('play');if(document.pointerLockElement)document.exitPointerLock()}
 function nextShot(){const c=C.cut;c.i++;c.u=0;if(c.i>=c.list.length){C.cut=null;document.body.classList.remove('cut');c.next();return}const sh=c.list[c.i];if(sh.setup)sh.setup();$('sub').textContent=sh.sub||'';C.cam.init=false}
-export function play(mode){for(const k in C.cast){const a=C.cast[k];if(a._gm){a.gunMode=a._gm;a._gm=null}}C.mode=mode||'foot';C.pt=0;C.cut=null;document.body.classList.remove('cut');document.body.classList.add('play');C.cam.init=false;keyL.intensity=0;rimL.intensity=0}
+export function play(mode){for(const k in C.cast){const a=C.cast[k];if(a._gm){a.gunMode=a._gm;a._gm=null}}C.mode=mode||'foot';E.cine=false;C.pt=0;C.cut=null;document.body.classList.remove('cut');document.body.classList.add('play');C.cam.init=false;keyL.intensity=0;rimL.intensity=0}
 export function say(h,t){C.hint=h;C.msgT=t||4}
 export function churt(n){if(C.mode=='done')return;if(AUTO)n*=.3;C.p.hp-=n;C.hurtT=.6;shake(.25);if(C.p.hp<=0){C.p.hp=0;C.mode='done';SFX.over();if(C.pa)C.pa.play('Death01',.2,{once:1});setTimeout(()=>overC(false),1600)}else if(rnd()<.5)SFX.hurt()}
 export function winCh(){if(C.mode=='done')return;C.mode='done';SFX.win();unlock(C.n+1);overC(true)}
@@ -89,14 +89,15 @@ function camUpdate(dt,snap){const p=C.p,cm=C.cam;// smooth over-the-shoulder cam
  const f=aimDir(p),r=new THREE.Vector3(-Math.cos(p.ya),0,Math.sin(p.ya));const port=E.portrait;const back=port?3.4:2.55,sideO=port?.38:.62,up=port?1.85:1.62;
  const piv=new THREE.Vector3(p.x,up,p.z).addScaledVector(r,sideO);const want=piv.clone().addScaledVector(f,-back);want.y+=.18;
  // pull in if a wall is behind
- const dir=want.clone().sub(piv);const L=dir.length();dir.normalize();let ok=L;for(let t=.2;t<=L;t+=.1){const q=piv.clone().addScaledVector(dir,t);if(solidR(q.x,q.z,.18)||(!C.open&&q.y>WH-.15)){ok=Math.max(.3,t-.2);break}}
+ const dir=want.clone().sub(piv);const L=dir.length();dir.normalize();let ok=L;for(let t=.2;t<=L;t+=.1){const q=piv.clone().addScaledVector(dir,t);if(solidR(q.x,q.z,.42)||(!C.open&&q.y>WH-.15)){ok=Math.max(.3,t-.2);break}}
+ if(W.camBlock.length){_ray.set(piv,dir);_ray.far=L;const hs=_ray.intersectObjects(W.camBlock,true);if(hs.length)ok=Math.min(ok,Math.max(.3,hs[0].distance-.45))}
  // and if the shoulder itself is inside a wall, swing to the centre
  if(solidR(piv.x,piv.z,.15)){piv.set(p.x,up,p.z);ok=Math.min(ok,back)}
  const cp=piv.clone().addScaledVector(dir,ok);const tgt=piv.clone().addScaledVector(f,20);
  if(!cm.init||snap){cm.p.copy(cp);cm.t.copy(tgt);cm.init=true}else{cm.p.lerp(cp,1-Math.exp(-dt*(ok<L?30:16)));cm.t.lerp(tgt,1-Math.exp(-dt*30))}
- if(C.pa)C.pa.root.visible=cm.p.distanceTo(new THREE.Vector3(p.x,cm.p.y,p.z))>.55;setCam(cm.p,cm.t,port?66:58)}
+ if(C.pa)C.pa.root.visible=cm.p.distanceTo(new THREE.Vector3(p.x,cm.p.y,p.z))>.6;setCam(cm.p,cm.t,port?66:58)}
 const _shk=new THREE.Vector3();
-function setCam(e,c,fov){camera.position.copy(e);if(FX.shake>0){const s=FX.shake*FX.shake*.12;_shk.set((rnd()-.5)*s,(rnd()-.5)*s,(rnd()-.5)*s);camera.position.add(_shk)}camera.lookAt(c);if(Math.abs(camera.fov-fov)>.01){camera.fov=fov;camera.updateProjectionMatrix()}}
+export function setCam(e,c,fov){camera.position.copy(e);if(FX.shake>0){const s=FX.shake*FX.shake*.12;_shk.set((rnd()-.5)*s,(rnd()-.5)*s,(rnd()-.5)*s);camera.position.add(_shk)}camera.lookAt(c);if(Math.abs(camera.fov-fov)>.01){camera.fov=fov;camera.updateProjectionMatrix()}}
 function anyAlert(){return C.en.some(e=>!e.dead&&!e.idle)}
 function footStep(dt,I){const p=C.p,pa=C.pa;
  if(IN.switch&&C.weaps.length>1){C.wi=(C.wi+1)%C.weaps.length;say(WPN[C.weaps[C.wi]].n,1.2);SFX.click();updGun()}
@@ -124,7 +125,7 @@ function footStep(dt,I){const p=C.p,pa=C.pa;
  C.flowT=(C.flowT||0)-dt;if(C.flowT<=0||!C.D){C.flowT=.3;C.D=W.map?bfs(p.x,p.z):null}
  for(const e of C.en){if(e.dead){e.dead+=dt;e.moving=0;if(e.dead>2.2)e.obj.root.position.y=-(e.dead-2.2)*.6;continue}
   if(e.y>0){e.y=Math.max(0,e.y-dt*3.5)}
-  if(e.idle){e.moving=0;if(dist(p,e)<(e.wake||9)&&los(p.x,p.z,e.x,e.z)){e.idle=0;if(e.k!='hugger')SFX.screech();else SFX.hiss()}continue}
+  if(e.inert)continue;if(e.idle){e.moving=0;if(dist(p,e)<(e.wake||9)&&los(p.x,p.z,e.x,e.z)){e.idle=0;if(e.k!='hugger')SFX.screech();else SFX.hiss()}continue}
   if(e===C.latch)continue;
   const d=dist(p,e);if(e.k=='hugger'&&d<3.6&&!C.latch&&C.t-(e.jT||-9)>2){e.jT=C.t;e.y=.8;if(d<1.7){C.latch=e;C.latchP=0;SFX.hiss();say('FACEHUGGER! Hold FIRE to tear it off!',2.5);continue}}
   const reach=e.k=='hugger'?.6:e.k=='queen'?2.6:1.5;e.moving=0;
@@ -145,7 +146,7 @@ function fireW(wn){const p=C.p,pa=C.pa,W0=WPN[wn];pa.root.updateMatrixWorld(true
   if(he){end=mz.clone().addScaledVector(d,he.t);dmgE(he.e,W0.dmg,end);C.hitN++}
   else if(hw){end=mz.clone().addScaledVector(d,hw.t);if(rnd()<.5)decal('hole',end,hw.n,.13);sparks(end,4,hw.n)}else end=mz.clone().addScaledVector(d,W0.rng);
   if(C.shotN%2==0||wn=='smart')tracer(mz,end);if(rnd()<.25)smokePuff(mz,.12,.5)}
- else if(wn=='flame'){if(C.shotN%2==0)SFX.flame();flame(mz,d,W0.rng);muzzle.position.copy(mz);muzzle.intensity=30;muzzle.color.setRGB(1,.55,.2);FX.muz=.12;
+ else if(wn=='flame'){if(C.shotN%2==0)SFX.flame();flame(mz,d,W0.rng);muzzle.position.copy(mz).addScaledVector(d,2.2);muzzle.position.y+=.2;muzzle.intensity=30+rnd()*18;muzzle.distance=12;muzzle.color.setRGB(1,.55,.2);FX.muz=.12;
   for(const e of alive()){const rx=e.x-mz.x,rz=e.z-mz.z;const along=rx*d.x+rz*d.z;const perp=Math.abs(rx*d.z-rz*d.x);if(along>0&&along<W0.rng&&perp<.8+along*.3&&los(mz.x,mz.z,e.x,e.z))dmgE(e,W0.dmg*W0.rate)}
   if(rnd()<.15){const hw=rayWorld(mz,d,W0.rng,WH);if(hw)decal('scorch',mz.clone().addScaledVector(d,hw.t),hw.n,.9)}}
  else if(wn=='gren'){SFX.gren();muzzleFlash(mz,d,0);const m=new THREE.Mesh(new THREE.SphereGeometry(.06,8,6),plain(0x353a2c,.5,.6));C.g.add(m);const v=d.clone().multiplyScalar(18);v.y+=2.5;C.nades.push({x:mz.x,y:mz.y,z:mz.z,vx:v.x,vy:v.y,vz:v.z,t:0,m})}}
@@ -184,9 +185,9 @@ function driveStep(dt,I){const D=C.drv;D.t+=dt;const boost=I.fire;D.v=lerp(D.v,b
   if(!o.hit&&Math.abs(o.z-D.z)<3.6&&Math.abs(o.x-D.x)<(o.k=='rock'?2.6:2.8)){o.hit=C.t;if(o.k=='alien'){if(boost){C.kills++;SFX.kill();acidBurst(new THREE.Vector3(o.x,1,o.z),20);o.vx=0}else{churt(10);SFX.hiss();say('It\'s on the hull — BOOST (FIRE) to ram them!',2)}}else{churt(o.k=='rock'?12:9);D.v*=.5;SFX.boom();shake(.8);sparks(new THREE.Vector3(o.x,1,o.z+1),20)}}}
  D.apc.position.set(D.x,0,D.z);D.apc.rotation.set(0,PI-D.steer*.25,-D.steer*.05);PR.spinWheels(D.apc,D.v,dt);if(rnd()<dt*20)smokePuff(new THREE.Vector3(D.x+(rnd()-.5)*2,.3,D.z+3.4),.18,.45);
  // headlights via the flashlight spot
- flash.position.set(D.x,2.4,D.z-3.6);flash.target.position.set(D.x+D.steer*3,0,D.z-24);flash.intensity=220;flash.distance=60;flash.angle=.55;
+ flash.position.set(D.x,2.4,D.z-3.6);flash.target.position.set(D.x+D.steer*3,0,D.z-24);flash.intensity=420;flash.distance=70;flash.angle=.55;
  if(-D.z>=D.len&&!C.dd){C.dd=1;(C.onDrive||LV[C.n].driveDone)()}}
-function driveCam(dt){const D=C.drv,port=E.portrait;const e=new THREE.Vector3(D.x*.6,port?9:5.8,D.z+(port?15:12)),c=new THREE.Vector3(D.x,1,D.z-12);const cm=C.cam;if(!cm.init){cm.p.copy(e);cm.t.copy(c);cm.init=true}cm.p.lerp(e,1-Math.exp(-dt*6));cm.t.lerp(c,1-Math.exp(-dt*8));setCam(cm.p,cm.t,(port?70:62)+(D.boost?6:0))}
+function driveCam(dt){const D=C.drv,port=E.portrait;const e=new THREE.Vector3(D.x*.6,port?7.5:4.2,D.z+(port?12:8.5)),c=new THREE.Vector3(D.x,1.2,D.z-10);const cm=C.cam;if(!cm.init){cm.p.copy(e);cm.t.copy(c);cm.init=true}cm.p.lerp(e,1-Math.exp(-dt*6));cm.t.lerp(c,1-Math.exp(-dt*8));setCam(cm.p,cm.t,(port?70:62)+(D.boost?6:0))}
 function apDrive(){const D=C.drv;let best=0,bs=-1e9;for(let x=-6;x<=6;x+=1.5){let s=-Math.abs(x-D.x)*.3;for(const o of D.obs){if(o.hit)continue;const ah=D.z-o.z;if(ah<0||ah>50)continue;const w=o.k=='alien'?-1:1;if(Math.abs(o.x-x)<3.4)s-=w*(52-ah)}if(s>bs){bs=s;best=x}}
  const sx=cl((best-D.x)*1.2,-1,1);const al=D.obs.some(o=>!o.hit&&o.k=='alien'&&D.z-o.z>0&&D.z-o.z<24);return{apSX:sx,fire:al||D.v<20,sx:0,fw:0}}
 // ---------------- autopilot ----------------
@@ -201,6 +202,7 @@ let apCache={};function apFoot(){const p=C.p;if(C.mode=='drive')return apDrive()
 // ---------------- HUD ----------------
 const trk=$('trkc').getContext('2d');let hudT=0;
 function updHUD(force){if(!C)return;const p=C.p;const wn=C.weaps[C.wi];$('obj').textContent=C.obj||'';$('hint').textContent=C.hint;$('hint').style.opacity=C.msgT>0?1:0;
+ const pb=C.bar&&C.mode!='cut'?C.bar():null;$('pbar').style.display=pb?'block':'none';if(pb){$('pbl').textContent=pb[0];$('pbf').style.width=(cl(pb[1],0,1)*100)+'%';$('pbf').style.background=pb[2]||'#e0a030'}$('score').textContent=C.mode=='cut'?'':(C.scoreTxt||'');
  $('hp').style.width=Math.max(0,p.hp)+'%';$('wpn').textContent=C.mode=='drive'?'APC · '+(C.fireMsg||'FIRE = BOOST'):(WPN[wn].n+(WPN[wn].mag?'  '+(C.rel>0?'RELOADING':String(C.ammo[wn]).padStart(3,'0')):''));
  $('hurt').style.boxShadow=`inset 0 0 ${120}px ${30}px rgba(120,10,0,${C.hurtT>0?.45*Math.min(1,C.hurtT*2):(p.hp<35?.18:0)})`;
  const showAct=C.mode=='foot'&&((C.act&&C.actOn)||C.latch);$('act').style.display=showAct?'block':'none';if(showAct){$('actl').textContent=C.latch?'HOLD FIRE — TEAR IT OFF':(C.act.label+' — HOLD FIRE');$('actb').style.width=((C.latch?C.latchP||0:C.actP)*100)+'%'}
@@ -218,7 +220,7 @@ const _focus=new THREE.Vector3();
 export function update(dt){if(!C)return;C.t+=dt;
  if(C.mode=='cut'){const c=C.cut,sh=c.list[c.i];c.u+=dt;if(sh.upd)sh.upd(c.u,dt);for(const k in C.cast){const a=C.cast[k];if(a.root.visible)a.update(dt)}
   if(LV[C.n].cutUpd)LV[C.n].cutUpd(dt,sh,c.u);for(const e of C.en)if(e.obj.root.visible&&sh.actors)syncE(e,dt);
-  const cm=sh.cam(c.u);const ev=new THREE.Vector3(...cm.e),cv=new THREE.Vector3(...cm.c);setCam(ev,cv,cm.fov||50);
+  const cm=sh.cam(c.u);const ev=new THREE.Vector3(...cm.e),cv=new THREE.Vector3(...cm.c);setCam(ev,cv,cm.fov||50);E.cine=true;E.focus=cm.face?ev.distanceTo(cm.face):ev.distanceTo(cv);
   // key light from camera side so faces always read; soft rim from behind
   const fw=cv.clone().sub(ev).normalize();const rt=new THREE.Vector3().crossVectors(fw,new THREE.Vector3(0,1,0)).normalize();keyL.position.copy(ev).addScaledVector(rt,.7).add(new THREE.Vector3(0,.6,0));keyL.target.position.copy(cv);keyL.intensity=sh.key??(cm.face?9:12);keyL.distance=cm.face?6:30;keyL.angle=cm.face?.45:.7;
   if(cm.face){rimL.position.copy(cv).addScaledVector(fw,.8).add(new THREE.Vector3(0,.4,0));rimL.intensity=4}else rimL.intensity=0;flash.intensity=sh.flash??0;
@@ -238,8 +240,8 @@ function finish(dt){updateFX(dt);updateRain(dt,C.wind||0);WD.updateDoors(dt);for
 export function updGun(){const wn=C.weaps[C.wi];if(!C.pa)return;if(C.pa.gun)C.pa.gun.visible=wn!='none';}
 // ---------------- menu ----------------
 export function buildMenu(){const ch=$('chaps');ch.innerHTML='';for(let n=1;n<=8;n++){const b=document.createElement('button');b.textContent=n+'. '+CHN[n]+(LV[n]?'':' (soon)');b.disabled=n>UNL||!LV[n];b.onclick=()=>{SFX.ui();startCh(n)};ch.appendChild(b)}
- const qb=$('qbtn');qb.textContent='QUALITY: '+E.q.toUpperCase();qb.onclick=()=>{const o=['low','medium','high'];setQuality(o[(o.indexOf(E.q)+1)%3])}}
-export function goMenu(){if(document.pointerLockElement)document.exitPointerLock();C=null;window.__game.C=null;document.body.classList.remove('play','cut');$('over').style.display='none';buildMenu();$('menu').style.display='flex';
+ const qb=$('qbtn');qb.textContent='QUALITY: '+E.q.toUpperCase();qb.onclick=()=>{const o=['low','medium','high','ultra'];setQuality(o[(o.indexOf(E.q)+1)%4])}}
+export function goMenu(){E.cine=false;if(document.pointerLockElement)document.exitPointerLock();C=null;window.__game.C=null;document.body.classList.remove('play','cut');$('over').style.display='none';buildMenu();$('menu').style.display='flex';
  clearWorld();resetFX();rain(false);menuScene()}
 let menuT=0;function menuScene(){const gr=W.group;const fl=new THREE.Mesh(boxGeo(30,.1,30,3),pbr('grid',{color:0x6a6a6a}));fl.position.y=-.05;fl.receiveShadow=true;gr.add(fl);
  for(let i=0;i<9;i++){const e=egg();const a=i/9*PI*2;e.position.set(Math.cos(a)*(3+i%3),0,Math.sin(a)*(3+i%3)-2);e.rotation.y=a;if(i%4==0)e.userData.open(.8);gr.add(e)}

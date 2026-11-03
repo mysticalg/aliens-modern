@@ -1,5 +1,5 @@
 // Texture/material library, procedural textures, character factory (CC0 Quaternius rigs + UAL animations).
-import {THREE,E,renderer} from './engine.js';
+import {THREE,E,renderer} from './engine.js?v=5';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
 import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js';
@@ -7,7 +7,7 @@ export {RoundedBoxGeometry};
 const TL=new THREE.TextureLoader(),GL=new GLTFLoader();
 const ANI=renderer.capabilities.getMaxAnisotropy();
 const texCache={};
-function tex(file,srgb){if(texCache[file])return texCache[file];const t=TL.load(file);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=Math.min(8,ANI);if(srgb)t.colorSpace=THREE.SRGBColorSpace;return texCache[file]=t}
+function tex(file,srgb){if(texCache[file])return texCache[file];const t=TL.load(file,undefined,undefined,()=>{if(file.includes('/hi/')){const f=TL.load(file.replace('/hi/','/'),x=>{t.image=x.image;t.needsUpdate=true})}});t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=Math.min(E.q=='ultra'?16:8,ANI);if(srgb)t.colorSpace=THREE.SRGBColorSpace;return texCache[file]=t}
 const MATS={};
 // PBR set from public/tex: name_c (albedo), name_n (GL normal), name_arm (AO/rough/metal)
 export function pbr(name,o={}){const key=name+JSON.stringify(o);if(MATS[key])return MATS[key];const d='tex/'+(E.P.tex?E.P.tex+'/':'');
