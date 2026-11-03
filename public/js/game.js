@@ -1,11 +1,11 @@
 // Campaign runtime: input, over-the-shoulder controller, combat, AI, allies, drive mode, cutscenes, HUD, menu.
-import {THREE,Q,TOUCH,MOBILE,E,setQuality,canvas,scene,camera,hemi,flash,sun,keyL,rimL,muzzle,updateLights,resize,frameStat,render,LS} from './engine.js?v=5';
-import {pbr,plain,emiss,boxGeo,model,actor,Actor} from './assets.js?v=5';
-import {Alien,Hugger,Queen,egg} from './creatures.js?v=5';
-import * as WD from './world.js?v=5';import {W,CS,WH,solid,solidR,moveE,bfs,pathDir,los,rayWorld,clearWorld} from './world.js?v=5';
-import {FX,initFX,resetFX,updateFX,tracer,muzzleFlash,sparks,acidBurst,decal,flame,explosion,shake,steam,smokePuff,rain,updateRain} from './fx.js?v=5';
-import {audioInit,SFX,tone,noise,music,ambience} from './audio.js?v=5';
-import * as PR from './props.js?v=5';
+import {THREE,Q,TOUCH,MOBILE,E,setQuality,canvas,scene,camera,hemi,flash,sun,keyL,rimL,muzzle,updateLights,resize,frameStat,render,LS} from './engine.js?v=6';
+import {pbr,plain,emiss,boxGeo,model,actor,Actor} from './assets.js?v=6';
+import {Alien,Hugger,Queen,egg} from './creatures.js?v=6';
+import * as WD from './world.js?v=6';import {W,CS,WH,solid,solidR,moveE,bfs,pathDir,los,rayWorld,clearWorld} from './world.js?v=6';
+import {FX,initFX,resetFX,updateFX,tracer,muzzleFlash,sparks,acidBurst,decal,flame,explosion,shake,steam,smokePuff,rain,updateRain} from './fx.js?v=6';
+import {audioInit,SFX,tone,noise,music,ambience} from './audio.js?v=6';
+import * as PR from './props.js?v=6';
 export const PI=Math.PI,lerp=(a,b,k)=>a+(b-a)*k,cl=(v,a,b)=>Math.max(a,Math.min(b,v)),sm=x=>{x=cl(x,0,1);return x*x*(3-2*x)},rnd=Math.random;
 export const dist=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
 export const AUTO=Q.has('auto');

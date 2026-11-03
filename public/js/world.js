@@ -1,7 +1,7 @@
 // Grid maps -> modular PBR level geometry, collision, navigation, line of sight.
 import {Reflector} from 'three/addons/objects/Reflector.js';
-import {THREE,scene,lightSrc,LS,E} from './engine.js?v=5';
-import {pbr,boxGeo,emiss,plain,model,resinMat} from './assets.js?v=5';
+import {THREE,scene,lightSrc,LS,E} from './engine.js?v=6';
+import {pbr,boxGeo,emiss,plain,model,resinMat} from './assets.js?v=6';
 export const CS=3,WH=3.4;
 export const W={map:null,mw:0,mh:0,mk:{},open:{},group:null,solidSet:'#FWKtcgDXb',doors:[],steam:[],extra:[],camBlock:[]};
 export function clearWorld(){if(W.reflector){W.reflector.dispose();W.reflector=null}if(W.group){W.group.traverse(o=>{if(o.isMesh||o.isInstancedMesh){o.geometry.dispose&&o.geometry.dispose()}});W.group.removeFromParent()}W.group=new THREE.Group();scene.add(W.group);LS.list.length=0;W.map=null;W.doors=[];W.steam=[];W.mk={};W.open={};W.colliders=[];W.camBlock=[];return W.group}

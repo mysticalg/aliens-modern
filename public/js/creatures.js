@@ -1,6 +1,6 @@
 // ORIGINAL procedural creature designs, built and animated entirely in code (no film/game assets).
-import {THREE} from './engine.js?v=5';
-import {alienSkin,huggerSkin,plain} from './assets.js?v=5';
+import {THREE} from './engine.js?v=6';
+import {alienSkin,huggerSkin,plain} from './assets.js?v=6';
 const V=(x,y,z)=>new THREE.Vector3(x,y,z);
 function J(parent,x=0,y=0,z=0){const g=new THREE.Group();g.position.set(x,y,z);parent.add(g);return g}
 function seg(parent,len,r0,r1,mat,dir=-1){const g=new THREE.CylinderGeometry(r1,r0,len,8,1);g.translate(0,dir*len/2,0);if(dir>0)g.rotateX(0);const m=new THREE.Mesh(g,mat);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m}

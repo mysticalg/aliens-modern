@@ -1,6 +1,6 @@
 // ===== CHAPTER 6 — ESCAPE =====
-import * as G from './game.js?v=5';
-import {resinDress,wallCocoons,spawner,fmt,TS} from './hive.js?v=5';
+import * as G from './game.js?v=6';
+import {resinDress,wallCocoons,spawner,fmt,TS} from './hive.js?v=6';
 const {THREE,PI,rnd,LV,PR,WD,dist}=G;
 const MAP6=["#########################",
 "#S.......#######.......J#",
@@ -53,7 +53,7 @@ LV[6]={init(){const C=G.C;G.env({fog:.05,fogCol:0x120c08,hemi:.32,hemiCol:0xb08a
    {d:3.2,sub:'The dropship descends through the storm, landing lights blazing.',setup:()=>G.env({hemi:.6}),upd:(u,dt)=>{ds.position.y=Math.max(1.6,9-u*7.4)},cam:u=>({e:[-74,3,-76],c:[-90,ds.position.y,-90],fov:48}),flash:0},
    {d:3,sub:'Ripley tapes a flamethrower beneath a pulse rifle, and loads a belt of grenades.',setup:()=>rp.a.play('Fixing_Kneeling',.2),cam:()=>G.CU(rp.a,.85,.3,.06,34),key:40},
    {d:3.2,sub:'Ripley: "Bishop — circle the pad. I am not leaving without her."',setup:()=>rp.a.play('Idle_Talking_Loop',.2),cam:()=>G.CU(rp.a,.62,-.18,.02,28)}],
-   ()=>{const[lx,lz]=WD.mk('L');C.pa.root.removeFromParent();rp.gone=nw.gone=true;C.pa=G.cast('player2','ripley');G.place(C.pa,lx,lz,PI);C.pa.loco('Idle_Loop','Pistol_Idle_Loop',0);
+   ()=>{const[lx,lz]=WD.mk('L');C.pa.root.removeFromParent();rp.gone=nw.gone=true;C.pa=G.cast('player2','ripley',{gun:'rifle'});G.place(C.pa,lx,lz,PI);C.pa.loco('Idle_Loop','Pistol_Idle_Loop',0);
     Object.assign(C.p,{x:lx,z:lz,ya:-PI/2,hp:100});C.weaps=['rifle','flame','gren'];C.wi=0;G.updGun();G.env({fog:.06,fogCol:0x140a06,hemi:.28});G.play();this.stage(2)})},
  bracelet(){const C=G.C;const[rx,rz]=WD.mk('R');const br=new THREE.Mesh(new THREE.TorusGeometry(.06,.015,6,16),G.emiss(0x40ff80,2));br.position.set(rx,.03,rz);br.rotation.x=PI/2;C.g.add(br);
   G.cut([{d:3.2,sub:'The locator signal is strong. Ripley drops to one knee.',setup:()=>C.pa.play('Crouch_Idle_Loop',.3),cam:()=>G.CU(C.pa,.8,.3,.02,32),flash:40},

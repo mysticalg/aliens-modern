@@ -1,6 +1,6 @@
 // Vehicles and set dressing built procedurally from PBR primitives.
-import {THREE} from './engine.js?v=5';
-import {pbr,plain,emiss,boxGeo,model,resinMat} from './assets.js?v=5';
+import {THREE} from './engine.js?v=6';
+import {pbr,plain,emiss,boxGeo,model,resinMat} from './assets.js?v=6';
 const M=(g,m,x=0,y=0,z=0)=>{const o=new THREE.Mesh(g,m);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;return o};
 const hullM=()=>pbr('panel',{color:0x6f7560}),darkM=()=>pbr('panel',{color:0x2c302a}),rubber=plain(0x101010,.85,0),glass=new THREE.MeshPhysicalMaterial({color:0x223038,roughness:.08,metalness:.2,transmission:0,clearcoat:1,envMapIntensity:2});
 export function apc(){const g=new THREE.Group(),H=hullM(),D=darkM();

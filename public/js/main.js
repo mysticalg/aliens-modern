@@ -1,8 +1,8 @@
-import {THREE,Q,E,resize,render,loadEnv,frameStat,renderer} from './engine.js?v=5';
-import {loadModels} from './assets.js?v=5';
-import {initFX} from './fx.js?v=5';
-import * as GM from './game.js?v=5';
-import './ch1.js?v=5';import './ch2.js?v=5';import './ch3.js?v=5';import './ch4.js?v=5';import './ch5.js?v=5';import './ch6.js?v=5';import './ch7.js?v=5';import './ch8.js?v=5';
+import {THREE,Q,E,resize,render,loadEnv,frameStat,renderer} from './engine.js?v=6';
+import {loadModels} from './assets.js?v=6';
+import {initFX} from './fx.js?v=6';
+import * as GM from './game.js?v=6';
+import './ch1.js?v=6';import './ch2.js?v=6';import './ch3.js?v=6';import './ch4.js?v=6';import './ch5.js?v=6';import './ch6.js?v=6';import './ch7.js?v=6';import './ch8.js?v=6';
 const $=id=>document.getElementById(id);
 const MODELS=['male','female','anims','hair_buzzed','hair_long','hair_simpleparted','hair_buns','hair_beard','hair_buzzedfemale','gun_rifle','gun_pistol','prop_crate','prop_crate_large','prop_barrel1','prop_locker','prop_desk_medium','prop_chair','prop_ammo','prop_shelves_widetall','prop_crate_tarp_large','prop_healthpack'];
 window.__errs=[];addEventListener('error',e=>window.__errs.push(String(e.message)));
