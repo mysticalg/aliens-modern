@@ -38,7 +38,7 @@ LV[5]={init(){const C=G.C;tanks=[];G.env({fog:.03,fogCol:0x0e1416,hemi:.6,hemiCo
    this.burkeCut()}
   if(n==2){const[zx,zz]=WD.mk('Z');C.obj='Huggers! Reach the fire sensor and hold a flame to it';for(const t of tanks){G.spawn('hugger',t.position.x,t.position.z+1)}
    C.act={x:zx+1,z:zz,r:1.6,dur:2.5*TS,label:'HOLD FIRE — LIGHTER TO SENSOR',done:()=>this.stage(3)};C.goal=C.act;G.say('Hold FIRE if one latches on — tear it off!',3)}
-  if(n==3){C.obj='Sprinklers on. Survive until help arrives';G.rain(true);G.SFX.hiss();C.endT=C.t+30*TS;C.bar=()=>['ALARM  '+fmt(C.endT-C.t),1-(C.endT-C.t)/(30*TS),'#60a0d0'];
+  if(n==3){C.obj='Sprinklers on. Survive until help arrives';G.rain(true);G.SFX.hiss();C.endT=C.t+45*TS;C.bar=()=>['ALARM  '+fmt(C.endT-C.t),1-(C.endT-C.t)/(45*TS),'#60a0d0'];
    G.say('Fire alarm — the sprinklers douse the lab. Ops will see this!',3);C.extraH=0}
   if(n==4){C.bar=null;C.goal=null;C.act=null;G.rain(false);this.rescue()}},
  burkeCut(){const C=G.C;const[dx,dz]=WD.mk('D');
