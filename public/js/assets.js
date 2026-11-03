@@ -1,5 +1,5 @@
 // Texture/material library, procedural textures, character factory (CC0 Quaternius rigs + UAL animations).
-import {THREE,E,renderer} from './engine.js?v=11';
+import {THREE,E,renderer} from './engine.js?v=12';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
 import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js';
@@ -115,7 +115,7 @@ export class Actor{constructor(o){this.o=o;const sex=o.sex||'m';const s=Skeleton
    if(old&&f>0){a.crossFadeFrom(old,f,false)}else if(old)old.stop();this.lay[k]=a}}
  aim(yaw,pitch){this.twY=yaw;this.twP=pitch}
  _twist(){if(!this.twY&&!this.twP)return;this.root.updateMatrixWorld(true);const right=_t2.set(1,0,0).applyQuaternion(this.root.getWorldQuaternion(_q1)).normalize();
-  for(const n of['spine_01','spine_02','spine_03']){const b=this.bones[n];if(!b)continue;rotW(b,_up,(this.twY||0)/3);rotW(b,right,-(this.twP||0)/3*.85)}}
+  const P=Math.max(-.32,Math.min(.28,this.twP||0)),Y=Math.max(-1.1,Math.min(1.1,this.twY||0));for(const n of['spine_01','spine_02','spine_03']){const b=this.bones[n];if(!b)continue;rotW(b,_up,Y/3);if(n!='spine_01')rotW(b,right,-P/2)}}
  update(dt){this.mixer.update(dt);this._twist();if(this.post)this.post(this);if(this.gun){this.root.updateMatrixWorld(true);this.placeGun()}}}
 const _t1=new THREE.Vector3(),_t2=new THREE.Vector3(),_q1=new THREE.Quaternion(),_q2=new THREE.Quaternion(),_q3=new THREE.Quaternion(),_up=new THREE.Vector3(0,1,0);
 function rotW(b,axis,ang){b.parent.getWorldQuaternion(_q2);const la=_t1.copy(axis).applyQuaternion(_q3.copy(_q2).invert());_q2.setFromAxisAngle(la,ang);b.quaternion.premultiply(_q2);b.updateMatrixWorld(true)}

@@ -1,17 +1,24 @@
 // Grid maps -> modular PBR level geometry, collision, navigation, line of sight.
 import {Reflector} from 'three/addons/objects/Reflector.js';
-import {THREE,scene,lightSrc,LS,E} from './engine.js?v=11';
-import {pbr,boxGeo,emiss,plain,model,resinMat} from './assets.js?v=11';
+import {THREE,scene,lightSrc,LS,E} from './engine.js?v=12';
+import {pbr,boxGeo,emiss,plain,model,resinMat} from './assets.js?v=12';
 export const CS=3,WH=3.4;
 export const W={map:null,mw:0,mh:0,mk:{},open:{},group:null,solidSet:'#FWKtcgDXb',doors:[],steam:[],extra:[],camBlock:[]};
-export function clearWorld(){if(W.reflector){W.reflector.dispose();W.reflector=null}if(W.group){W.group.traverse(o=>{if(o.isMesh||o.isInstancedMesh){o.geometry.dispose&&o.geometry.dispose()}});W.group.removeFromParent()}W.group=new THREE.Group();scene.add(W.group);LS.list.length=0;W.map=null;W.doors=[];W.steam=[];W.mk={};W.open={};W.colliders=[];W.camBlock=[];return W.group}
+export function clearWorld(){if(W.reflector){W.reflector.dispose();W.reflector=null}if(W.group){W.group.traverse(o=>{if(o.isMesh||o.isInstancedMesh){o.geometry.dispose&&o.geometry.dispose()}});W.group.removeFromParent()}W.group=new THREE.Group();scene.add(W.group);LS.list.length=0;W.map=null;W.doors=[];W.steam=[];W.mk={};W.open={};W.colliders=[];W.rcol=[];W.camBlock=[];return W.group}
 export function setMap(rows){const w=Math.max(...rows.map(r=>r.length));W.map=rows.map(r=>r.padEnd(w,' '));W.mw=w;W.mh=rows.length;W.mk={};W.open={};
  W.map.forEach((r,j)=>[...r].forEach((ch,i)=>{if(!'# .'.includes(ch))(W.mk[ch]=W.mk[ch]||[]).push([i*CS,j*CS])}))}
 export const mk=(ch,i)=>W.mk[ch][i||0];
 export function solid(x,z){if(!W.map)return colSolid(x,z);const i=Math.round(x/CS),j=Math.round(z/CS),c=(W.map[j]||'')[i]||' ';return((c==' '||W.solidSet.includes(c))&&!W.open[i+','+j])||colSolid(x,z)}
 function colSolid(x,z){for(const c of W.colliders||[])if(Math.abs(x-c.x)<c.hw&&Math.abs(z-c.z)<c.hd)return true;return false}
 export const solidR=(x,z,r)=>solid(x-r,z-r)||solid(x+r,z-r)||solid(x-r,z+r)||solid(x+r,z+r);
-export function moveE(e,dx,dz,r){let m=false;if(solidR(e.x,e.z,r)){if(solidR(e.x,e.z,r*.4))return false;r*=.4}if(!solidR(e.x+dx,e.z,r)){e.x+=dx;m=true}if(!solidR(e.x,e.z+dz,r)){e.z+=dz;m=true}return m}
+// capsule (circle in plan) vs grid cells, box colliders and round colliders
+function cellS(i,j){const c=(W.map[j]||'')[i]||' ';return(c==' '||W.solidSet.includes(c))&&!W.open[i+','+j]}
+export function solidC(x,z,r){if(W.map){const h=CS/2;for(let j=Math.round((z-r)/CS);j<=Math.round((z+r)/CS);j++)for(let i=Math.round((x-r)/CS);i<=Math.round((x+r)/CS);i++){if(!cellS(i,j))continue;
+  const dx=Math.max(0,Math.abs(x-i*CS)-h),dz=Math.max(0,Math.abs(z-j*CS)-h);if(dx*dx+dz*dz<r*r)return true}}
+ for(const c of W.colliders||[]){const dx=Math.max(0,Math.abs(x-c.x)-c.hw),dz=Math.max(0,Math.abs(z-c.z)-c.hd);if(dx*dx+dz*dz<r*r)return true}
+ for(const c of W.rcol||[])if(Math.hypot(x-c.x,z-c.z)<r+c.r)return true;return false}
+export function moveE(e,dx,dz,r){const n=Math.max(1,Math.ceil(Math.hypot(dx,dz)/(r*.5)));let m=false;if(solidC(e.x,e.z,r)){if(solidC(e.x,e.z,r*.4))return false;r*=.4}
+ for(let k=0;k<n;k++){if(!solidC(e.x+dx/n,e.z,r)){e.x+=dx/n;m=true}if(!solidC(e.x,e.z+dz/n,r)){e.z+=dz/n;m=true}}return m}
 export function bfs(tx,tz){const w=W.mw,h=W.mh,D=new Int16Array(w*h).fill(-1);const ti=Math.round(tx/CS),tj=Math.round(tz/CS);if(ti<0||tj<0||ti>=w||tj>=h)return D;const q=[ti+tj*w];D[q[0]]=0;
  for(let k=0;k<q.length;k++){const c=q[k],i=c%w,j=c/w|0;for(const[di,dj]of[[1,0],[-1,0],[0,1],[0,-1]]){const ni=i+di,nj=j+dj;if(ni<0||nj<0||ni>=w||nj>=h)continue;const n=ni+nj*w;if(D[n]>=0||solid(ni*CS,nj*CS))continue;D[n]=D[c]+1;q.push(n)}}return D}
 function stepTo(D,x,z){const w=W.mw,i=Math.round(x/CS),j=Math.round(z/CS);const d0=D[i+j*w];let best=null,bd=d0<0?1e9:d0;for(const[di,dj]of[[1,0],[-1,0],[0,1],[0,-1]]){const ni=i+di,nj=j+dj;if(ni<0||nj<0||ni>=W.mw||nj>=W.mh)continue;const d=D[ni+nj*w];if(d>=0&&d<bd){bd=d;best=[ni*CS,nj*CS]}}return best}
@@ -33,8 +40,10 @@ function nearOpen(i,j){for(let dj=-1;dj<=1;dj++)for(let di=-1;di<=1;di++){const 
 const H1=n=>{const x=Math.sin(n*127.1+311.7)*43758.5453;return x-Math.floor(x)};
 export function add(o){W.group.add(o);return o}
 export function boxM(x,y,z,w,h,d,mat,o={}){const m=new THREE.Mesh(boxGeo(w,h,d,o.t||2,o.r||0),mat);m.position.set(x,y,z);if(o.ry)m.rotation.y=o.ry;m.castShadow=o.cast!==false;m.receiveShadow=true;W.group.add(m);return m}
-export function prop(name,x,z,ry=0,s=1,y=0,col=true){const m=model(name);m.position.set(x,y,z);m.rotation.y=ry;m.scale.setScalar(s);W.group.add(m);W.camBlock.push(m);if(col)W.colliders.push({x,z,hw:.45*s+.05,hd:.45*s+.05});return m}
-export function block(o,col){W.camBlock.push(o);if(col)W.colliders.push(col);return o}
+function autoCol(o,round){o.updateMatrixWorld(true);const b=new THREE.Box3().setFromObject(o);if(!isFinite(b.min.x)||b.max.y<.25||b.min.y>2.2)return;const c=b.getCenter(new THREE.Vector3()),hx=(b.max.x-b.min.x)/2,hz=(b.max.z-b.min.z)/2;
+ if(round)W.rcol.push({x:c.x,z:c.z,r:Math.max(hx,hz)*.92});else W.colliders.push({x:c.x,z:c.z,hw:hx+.02,hd:hz+.02})}
+export function prop(name,x,z,ry=0,s=1,y=0,col=true){const m=model(name);m.position.set(x,y,z);m.rotation.y=ry;m.scale.setScalar(s);W.group.add(m);W.camBlock.push(m);if(col)autoCol(m);return m}
+export function block(o,col){W.camBlock.push(o);if(col)W.colliders.push(col);else if(o&&o.position)autoCol(o,true);return o}
 export function buildMap(o={}){const wallM=pbr(o.wall||'wall',{color:o.wallTint??0xb8c0c4}),floorM=pbr(o.floor||'plate',{color:o.floorTint??0x9aa0a0}),ceilM=pbr(o.ceil||'panel',{color:0x5a6066});
  const walls=[],floors=[],ceils=[],trims=[],lamps=[],pipes=[],strips=[];
  W.map.forEach((r,j)=>[...r].forEach((ch,i)=>{const x=i*CS,z=j*CS;if(ch==' ')return;

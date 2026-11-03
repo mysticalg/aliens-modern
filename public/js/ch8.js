@@ -1,6 +1,6 @@
 // ===== CHAPTER 8 — SULACO =====
-import * as G from './game.js?v=11';
-import {fmt,TS} from './hive.js?v=11';
+import * as G from './game.js?v=12';
+import {fmt,TS} from './hive.js?v=12';
 const {THREE,PI,rnd,LV,PR,WD,dist}=G;
 const MAP8=["#################",
 "#......A........#",

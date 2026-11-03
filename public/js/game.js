@@ -1,11 +1,11 @@
 // Campaign runtime: input, over-the-shoulder controller, combat, AI, allies, drive mode, cutscenes, HUD, menu.
-import {THREE,Q,TOUCH,MOBILE,E,setQuality,canvas,scene,camera,hemi,flash,sun,keyL,rimL,muzzle,updateLights,resize,frameStat,render,LS,renderer} from './engine.js?v=11';
-import {pbr,plain,emiss,boxGeo,model,actor,Actor} from './assets.js?v=11';
-import {Alien,Hugger,Queen,egg} from './creatures.js?v=11';
-import * as WD from './world.js?v=11';import {W,CS,WH,solid,solidR,moveE,bfs,pathDir,los,rayWorld,clearWorld} from './world.js?v=11';
-import {FX,initFX,resetFX,updateFX,tracer,muzzleFlash,sparks,acidBurst,decal,flame,explosion,shake,steam,smokePuff,rain,updateRain} from './fx.js?v=11';
-import {audioInit,SFX,tone,noise,music,ambience} from './audio.js?v=11';
-import * as PR from './props.js?v=11';
+import {THREE,Q,TOUCH,MOBILE,E,setQuality,canvas,scene,camera,hemi,flash,sun,keyL,rimL,muzzle,updateLights,resize,frameStat,render,LS,renderer} from './engine.js?v=12';
+import {pbr,plain,emiss,boxGeo,model,actor,Actor} from './assets.js?v=12';
+import {Alien,Hugger,Queen,egg} from './creatures.js?v=12';
+import * as WD from './world.js?v=12';import {W,CS,WH,solid,solidR,solidC,moveE,bfs,pathDir,los,rayWorld,clearWorld} from './world.js?v=12';
+import {FX,initFX,resetFX,updateFX,tracer,muzzleFlash,sparks,acidBurst,decal,flame,explosion,shake,steam,smokePuff,rain,updateRain} from './fx.js?v=12';
+import {audioInit,SFX,tone,noise,music,ambience} from './audio.js?v=12';
+import * as PR from './props.js?v=12';
 export const PI=Math.PI,lerp=(a,b,k)=>a+(b-a)*k,cl=(v,a,b)=>Math.max(a,Math.min(b,v)),sm=x=>{x=cl(x,0,1);return x*x*(3-2*x)},rnd=Math.random;
 export const dist=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
 export const AUTO=Q.has('auto');
@@ -91,17 +91,23 @@ export function aimPoint(){// ray from the camera through the crosshair
 function assist(p,dt,strength){// soft aim assist: rotate toward the enemy nearest the crosshair
  const d=aimDir(p);let best=null,ba=strength;const head=new THREE.Vector3(p.x,1.5,p.z);for(const e of alive()){if(e.idle&&e.k!='queen')continue;const cy=e.k=='hugger'?.2+e.y:e.k=='queen'?2.4:1.1;_v.set(e.x-p.x,cy-1.5,e.z-p.z);const L=_v.length();if(L>32)continue;_v.normalize();const a=Math.acos(cl(_v.dot(d),-1,1));if(a<ba&&los(p.x,p.z,e.x,e.z)){ba=a;best=[_v.clone(),L]}}
  if(best){const ty=Math.atan2(best[0].x,best[0].z),tp=Math.asin(best[0].y);let dy=((ty-p.ya+PI*3)%(PI*2))-PI;const k=Math.min(1,dt*8);p.ya+=dy*k;p.pitch+=(tp-p.pitch)*k;return true}return false}
-function camUpdate(dt,snap){const p=C.p,cm=C.cam;// smooth over-the-shoulder camera with wall collision
- const f=aimDir(p),r=new THREE.Vector3(-Math.cos(p.ya),0,Math.sin(p.ya));const port=E.portrait;const back=port?3.4:2.55,sideO=port?.38:.62,up=port?1.85:1.62;
- const piv=new THREE.Vector3(p.x,up,p.z).addScaledVector(r,sideO);const want=piv.clone().addScaledVector(f,-back);want.y+=.18;
- // pull in if a wall is behind
- const dir=want.clone().sub(piv);const L=dir.length();dir.normalize();let ok=L;for(let t=.2;t<=L;t+=.1){const q=piv.clone().addScaledVector(dir,t);if(solidR(q.x,q.z,.42)||(!C.open&&q.y>WH-.15)){ok=Math.max(.3,t-.2);break}}
- if(W.camBlock.length){_ray.set(piv,dir);_ray.far=L;const hs=_ray.intersectObjects(W.camBlock,true);if(hs.length)ok=Math.min(ok,Math.max(.3,hs[0].distance-.45))}
- // and if the shoulder itself is inside a wall, swing to the centre
- if(solidR(piv.x,piv.z,.15)){piv.set(p.x,up,p.z);ok=Math.min(ok,back)}
- const cp=piv.clone().addScaledVector(dir,ok);const tgt=piv.clone().addScaledVector(f,20);
- if(!cm.init||snap){cm.p.copy(cp);cm.t.copy(tgt);cm.init=true}else{cm.p.lerp(cp,1-Math.exp(-dt*(ok<L?30:16)));cm.t.lerp(tgt,1-Math.exp(-dt*30))}
- if(C.pa)C.pa.root.visible=cm.p.distanceTo(new THREE.Vector3(p.x,cm.p.y,p.z))>.6;setCam(cm.p,cm.t,port?66:58)}
+const PR_R=.42,_cr=new THREE.Raycaster(),_fd=new Set();
+function camHit(o,d,L){_cr.set(o,d);_cr.far=L;const hs=W.camBlock.length?_cr.intersectObjects(W.camBlock,true):[];return hs.length?hs[0]:null}
+function camUpdate(dt,snap){const p=C.p,cm=C.cam;// over-the-shoulder camera: spherecast against walls and props, min distance, occluder fade
+ const f=aimDir(p),r=new THREE.Vector3(-Math.cos(p.ya),0,Math.sin(p.ya));const port=E.portrait;const back=port?3.4:2.55,sideO=port?.38:.62,up=port?1.85:1.62,CR=.28;
+ const piv=new THREE.Vector3(p.x,up,p.z);let so=sideO;for(;so>0;so-=.1){if(!solidC(p.x+r.x*so,p.z+r.z*so,CR))break}piv.addScaledVector(r,Math.max(0,so));
+ const want=piv.clone().addScaledVector(f,-back);want.y+=.18;const dir=want.clone().sub(piv);const L=dir.length();dir.normalize();let ok=L;
+ for(let t=.05;t<=L;t+=.05){const q=piv.clone().addScaledVector(dir,t);if(solidC(q.x,q.z,CR)||(!C.open&&q.y>WH-.2)||q.y<.15){ok=t-.05;break}}
+ const h=camHit(piv,dir,L+CR);if(h)ok=Math.min(ok,h.distance-CR);ok=Math.max(.05,ok);
+ let cp=piv.clone().addScaledVector(dir,ok);{const hd=new THREE.Vector3(p.x,1.6,p.z),v=cp.clone().sub(hd),l=v.length();if(l>.05){v.normalize();const hh=camHit(hd,v,l+CR);if(hh&&hh.distance<l+CR)cp=hd.addScaledVector(v,Math.max(.05,hh.distance-CR))}}const tgt=piv.clone().addScaledVector(f,20);
+ if(!cm.init||snap){cm.p.copy(cp);cm.t.copy(tgt);cm.init=true}else{if(cm.p.distanceTo(piv)>ok+.02)cm.p.copy(cp);else cm.p.lerp(cp,1-Math.exp(-dt*16));cm.t.lerp(tgt,1-Math.exp(-dt*30))}
+ // never leave the camera inside a wall
+ if(solidC(cm.p.x,cm.p.z,.12))cm.p.copy(piv);
+ // fade props between camera and player
+ const ch=new THREE.Vector3(p.x,1.2,p.z),od=ch.clone().sub(cm.p);const ol=od.length();od.normalize();_cr.set(cm.p,od);_cr.far=ol;const now=new Set();
+ for(const x of W.camBlock.length?_cr.intersectObjects(W.camBlock,true):[]){const o=x.object;if(o.isInstancedMesh||!o.material||Array.isArray(o.material))continue;if(!o.userData.fm){o.userData.om=o.material;o.userData.fm=o.material.clone();o.userData.fm.transparent=true}now.add(o)}
+ for(const o of now){o.material=o.userData.fm;o.userData.fm.opacity=.25;_fd.add(o)}for(const o of _fd)if(!now.has(o)){o.material=o.userData.om;_fd.delete(o)}
+ const cd=cm.p.distanceTo(new THREE.Vector3(p.x,cm.p.y,p.z));C.camMin=Math.min(C.camMin??9,cd);if(C.pa)C.pa.root.visible=cd>.75;setCam(cm.p,cm.t,port?66:58)}
 const _shk=new THREE.Vector3();
 export function setCam(e,c,fov){camera.position.copy(e);if(FX.shake>0){const s=FX.shake*FX.shake*.12;_shk.set((rnd()-.5)*s,(rnd()-.5)*s,(rnd()-.5)*s);camera.position.add(_shk)}camera.lookAt(c);if(Math.abs(camera.fov-fov)>.01){camera.fov=fov;camera.updateProjectionMatrix()}}
 function anyAlert(){return C.en.some(e=>!e.dead&&!e.idle)}
@@ -114,7 +120,7 @@ function footStep(dt,I){const p=C.p,pa=C.pa;
  // move (camera-relative)
  const f=[Math.sin(p.ya),Math.cos(p.ya)],r=[-Math.cos(p.ya),Math.sin(p.ya)];let wx=r[0]*I.sx+f[0]*I.fw,wz=r[1]*I.sx+f[1]*I.fw;if(I.wx!=null){wx=I.wx;wz=I.wz}
  const ml=Math.hypot(wx,wz);const aiming=I.fire||C.t-C.fireT<.6||IN.aimHeld;const sp=(C.speed||(I.sprint&&!aiming?6.4:4.6))*(C.latch?.35:1)*(aiming?.8:1);
- if(ml>.05){moveE(p,wx*sp*dt,wz*sp*dt,.34);if(((C.t*(sp>5?3:2.2))|0)!=((C.t-dt)*(sp>5?3:2.2)|0))SFX.step()}
+ if(ml>.05){moveE(p,wx*sp*dt,wz*sp*dt,PR_R);if(((C.t*(sp>5?3:2.2))|0)!=((C.t-dt)*(sp>5?3:2.2)|0))SFX.step()}
  // body facing: toward aim, legs turn toward movement (with spine counter-twist)
  let off=0,lo='Idle_Loop',ts=1;if(ml>.05){const mya=Math.atan2(wx,wz);let rel=((mya-p.ya+PI*3)%(PI*2))-PI;if(Math.abs(rel)>PI*.62){lo='Walk_Loop';ts=-1.25;rel=((rel+PI*2)%(PI*2))-PI;rel=((rel+PI+PI*3)%(PI*2))-PI}else lo=sp>5.5?'Sprint_Loop':'Jog_Fwd_Loop';off=cl(rel,-1.1,1.1);if(lo=='Jog_Fwd_Loop')ts=sp/4.6}
  p.off=lerp(p.off||0,off,1-Math.exp(-dt*10));p.fy=p.ya+p.off;pa.root.position.set(p.x,0,p.z);pa.root.rotation.y=p.fy;pa.loco(lo,'Pistol_Idle_Loop',.2,ts);pa.aim(-p.off,p.pitch);pa.aimPitch=p.pitch;pa.root.visible=true;
@@ -219,7 +225,7 @@ function updHUD(force){if(!C)return;const p=C.p;const wn=C.weaps[C.wi];$('obj').
    const s=d/34*R;trk.fillStyle=k==2?'rgba(120,200,255,.9)':'rgba(170,255,190,'+(.5+.5*Math.sin(C.t*8))+')';trk.beginPath();trk.arc(80+Math.sin(a)*s,80-Math.cos(a)*s,k==2?4:5,0,PI*2);trk.fill()}
   $('trkd').textContent=C.trkD<99?Math.round(C.trkD)+'m':'--m'}}
 // objective beacon in the world
-let beacon=null;function updBeacon(){if(!beacon){beacon=new THREE.Mesh(new THREE.CylinderGeometry(.35,.35,6,16,1,true),new THREE.MeshBasicMaterial({color:new THREE.Color(.2,1.2,.6),transparent:true,opacity:.12,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide}));scene.add(beacon)}
+let beacon=null;function updBeacon(){if(!beacon){beacon=new THREE.Mesh(new THREE.CylinderGeometry(.35,.35,6,16,1,true),new THREE.MeshBasicMaterial({color:new THREE.Color(.2,1.2,.6),transparent:true,opacity:.12,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide}));beacon.raycast=()=>{};scene.add(beacon)}
  const gl=C&&C.mode=='foot'?(C.act||C.goal):null;beacon.visible=!!gl&&C.showBeacon!==false;if(gl){beacon.position.set(gl.x,1.5,gl.z);const cd=Math.hypot(camera.position.x-gl.x,camera.position.z-gl.z);const nf=Math.min(1,Math.max(0,(cd-2.5)/4));beacon.visible=beacon.visible&&nf>0;beacon.material.opacity=(.08+.05*Math.sin(C.t*2.5))*nf}}
 // ---------------- main update ----------------
 const _focus=new THREE.Vector3();
@@ -256,4 +262,19 @@ let menuT=0;function menuScene(){const gr=W.group;const fl=new THREE.Mesh(boxGeo
 export function menuUpdate(dt){menuT+=dt;const a=window.__menuAlien;if(a)a.update(dt,{speed:0,hiss:1});camera.position.set(Math.sin(menuT*.08)*6,1.6,Math.cos(menuT*.08)*6+2);camera.lookAt(0,1.2,-3);keyL.intensity=0;flash.position.set(2,4,4);flash.target.position.set(0,1,-4);flash.intensity=40;
  for(let i=0;i<2;i++)if(rnd()<dt*3)steam(new THREE.Vector3((rnd()-.5)*8,.2,(rnd()-.5)*8-2),1.5);updateFX(dt);updateLights(menuT,new THREE.Vector3(0,1,0))}
 export {K,IN,W,CS,WH,WD,PR,FX,SFX,THREE,scene,camera,hemi,flash,sun,keyL,rimL,muzzle,LS,pbr,plain,emiss,boxGeo,model,actor,Alien,Hugger,Queen,egg,sparks,acidBurst,decal,explosion,shake,steam,smokePuff,rain,flame,tracer,muzzleFlash,solid,los,bfs,moveE,ambience,tone,noise,E,TOUCH,MOBILE};
-window.__game={startCh,LV,C:null,setAuto:v=>{if(C)C.auto=v},skip:()=>{IN.skip=true},goMenu};
+
+// automated test: walk the player into every wall face, check capsule penetration and camera placement
+function wallTest(o={}){if(!C||C.mode!='foot'||!W.map)return{err:'not on foot',mode:C&&C.mode};const p=C.p,sv={x:p.x,z:p.z,ya:p.ya,pitch:p.pitch},res={cells:0,pushes:0,pen:[],meshPen:[],camIn:[],camOcc:[],minMesh:9,minCam:9};
+ const cells=[];W.map.forEach((r,j)=>[...r].forEach((c,i)=>{if(solid(i*CS,j*CS))return;for(const[a,b]of[[1,0],[-1,0],[0,1],[0,-1]])if(solid((i+a)*CS,(j+b)*CS)){cells.push([i,j,a,b])}}));
+ const step=Math.max(1,Math.floor(cells.length/(o.max||160)));const dirs=[];for(let k=0;k<16;k++)dirs.push(new THREE.Vector3(Math.sin(k/16*PI*2),0,Math.cos(k/16*PI*2)));
+ for(let n=0;n<cells.length;n+=step){const[i,j,a,b]=cells[n];res.cells++;for(const sl of[-.35,0,.35]){
+  p.x=i*CS+(b?sl*CS:0);p.z=j*CS+(a?sl*CS:0);if(solidC(p.x,p.z,PR_R))continue;
+  for(let k=0;k<60;k++)moveE(p,a*.1+(rnd()-.5)*.04,b*.1+(rnd()-.5)*.04,PR_R);res.pushes++;
+  if(solidC(p.x,p.z,PR_R-.02))res.pen.push([C.n,i,j,+p.x.toFixed(2),+p.z.toFixed(2)]);
+  for(const y of[.35,.9,1.5])for(const d of dirs){const h=camHit(new THREE.Vector3(p.x,y,p.z),d,PR_R+.3);if(h){res.minMesh=Math.min(res.minMesh,h.distance);if(h.distance<PR_R-.14)res.meshPen.push([C.n,i,j,y,+h.distance.toFixed(2),(h.object.name||h.object.type)+':'+h.object.geometry.type+':'+(h.object.parent&&h.object.parent.name)+':'+JSON.stringify(h.object.geometry.parameters)+':'+h.object.isInstancedMesh+':'+(h.object.material.color&&h.object.material.color.getHexString())+'@'+h.point.x.toFixed(1)+','+h.point.z.toFixed(1)])}}
+  for(const[ya,pi]of[[Math.atan2(-a,-b),0],[Math.atan2(-a,-b),.6],[Math.atan2(-a,-b),-.7],[Math.atan2(b,-a),0],[Math.atan2(-b,a),0]]){p.ya=ya;p.pitch=pi;camUpdate(.016,true);const cp=camera.position;
+   if(solidC(cp.x,cp.z,.08)||cp.y<.08||(!C.open&&cp.y>WH-.05))res.camIn.push([C.n,i,j,+cp.x.toFixed(2),+cp.y.toFixed(2),+cp.z.toFixed(2)]);
+   const hd=new THREE.Vector3(p.x,1.6,p.z),dv=cp.clone().sub(hd),L=dv.length();if(L>.05){const h=camHit(hd,dv.normalize(),L);if(h&&h.distance<L-.02)res.camOcc.push([C.n,i,j,+(L-h.distance).toFixed(2),h.object.name||h.object.type])}
+   res.minCam=Math.min(res.minCam,Math.hypot(cp.x-p.x,cp.z-p.z))}}}
+ Object.assign(p,sv);camUpdate(.016,true);return res}
+window.__game={wallTest,startCh,LV,C:null,setAuto:v=>{if(C)C.auto=v},skip:()=>{IN.skip=true},goMenu};

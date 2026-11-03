@@ -1,19 +1,19 @@
 // shared helpers for chapters 3-8: resin hive dressing, alien spawners, timers
-import * as G from './game.js?v=11';
+import * as G from './game.js?v=12';
 const {THREE,rnd,WD,dist}=G;
 export const TS=new URLSearchParams(location.search).has('fast')?.35:1;
 // biomechanical resin growing over walls: ribs, tubes and drips, instanced
 export function resinDress(o={}){const W=WD.W,CS=G.CS,WH=G.WH;const ribs=[],tubes=[],blobs=[];const H=(a)=>{const s=Math.sin(a*127.1)*43758.5453;return s-Math.floor(s)};
  W.map.forEach((r,j)=>[...r].forEach((ch,i)=>{if(ch=='#'||ch==' ')return;if(G.solid(i*CS,j*CS)&&!'cSX'.includes(ch))return;const x=i*CS,z=j*CS;
   for(const[di,dj]of[[1,0],[-1,0],[0,1],[0,-1]]){const c=(W.map[j+dj]||'')[i+di];if(c!='#')continue;const wx=x+di*CS*.5,wz=z+dj*CS*.5;const n=o.dense||4;
-   for(let k=0;k<n;k++){const h=H(i*13.1+j*7.7+k*3.3+di*5+dj*11);const t=(k+.5)/n-.5+(h-.5)*.2;const px=wx+(dj?t*CS:0)-di*.08,pz=wz+(di?t*CS:0)-dj*.08;
-    ribs.push([px,WH/2,pz,(h-.5)*.4,.7+h*.6]);if(h>.55)blobs.push([px-di*.1,.3+h*2.6,pz-dj*.1,h*6,.25+h*.35])}
-   tubes.push([wx-di*.15,.4+H(i+j)*2.4,wz-dj*.15,di?0:Math.PI/2])}}));
+   for(let k=0;k<n;k++){const h=H(i*13.1+j*7.7+k*3.3+di*5+dj*11);const t=Math.max(-.36,Math.min(.36,((k+.5)/n-.5)*.8+(h-.5)*.12));const px=wx+(dj?t*CS:0)+di*.04,pz=wz+(di?t*CS:0)+dj*.04;
+    ribs.push([px+di*.1,WH/2,pz+dj*.1,(h-.5)*.25,.7+h*.6,di]);if(h>.55){const bs=.25+h*.35;blobs.push([px+di*bs*.6,.3+h*2.6,pz+dj*bs*.6,h*6,bs,di?Math.PI/2:0])}}
+   tubes.push([wx-di*.02,.4+H(i+j)*2.4,wz-dj*.02,di?Math.PI/2:0])}}));
  const m=_rm||(_rm=resin());const M=new THREE.Matrix4(),q=new THREE.Quaternion(),s=new THREE.Vector3(),p=new THREE.Vector3(),e=new THREE.Euler();
- const mk=(geo,arr,f)=>{if(!arr.length)return;const im=new THREE.InstancedMesh(geo,m,arr.length);arr.forEach((a,k)=>{f(a);M.compose(p,q,s);im.setMatrixAt(k,M)});im.castShadow=true;im.receiveShadow=true;W.group.add(im)};
- mk(new THREE.CylinderGeometry(.09,.16,WH,7,6),ribs,a=>{p.set(a[0],a[1],a[2]);e.set(a[3]*.3,0,a[3]);q.setFromEuler(e);s.set(a[4],1,a[4])});
+ const mk=(geo,arr,f)=>{if(!arr.length)return;const im=new THREE.InstancedMesh(geo,m,arr.length);arr.forEach((a,k)=>{f(a);M.compose(p,q,s);im.setMatrixAt(k,M)});im.castShadow=true;im.receiveShadow=true;W.group.add(im);W.camBlock.push(im)};
+ mk(new THREE.CylinderGeometry(.09,.16,WH,7,6),ribs,a=>{p.set(a[0],a[1],a[2]);e.set(a[5]?a[3]:0,0,a[5]?0:a[3],'XYZ');q.setFromEuler(e);s.set(a[4],1,a[4])});
  mk(new THREE.CylinderGeometry(.11,.11,CS,8,4).rotateZ(Math.PI/2),tubes,a=>{p.set(a[0],a[1],a[2]);e.set(0,a[3],0);q.setFromEuler(e);s.set(1,1,1)});
- mk(new THREE.SphereGeometry(1,10,8),blobs,a=>{p.set(a[0],a[1],a[2]);e.set(a[3],a[3]*.7,0);q.setFromEuler(e);s.set(a[4],a[4]*1.6,a[4]*.6)})}
+ mk(new THREE.SphereGeometry(1,10,8),blobs,a=>{p.set(a[0],a[1],a[2]);e.set(0,a[5],a[3],'YXZ');q.setFromEuler(e);s.set(a[4],a[4]*1.6,a[4]*.6)})}
 let _rm=null;function resin(){const m=new THREE.MeshPhysicalMaterial({color:0x3a4048,roughness:.35,metalness:.2,clearcoat:.8,clearcoatRoughness:.3});
  const c=G.egg();c.traverse(o=>{if(o.isMesh&&o.material.normalMap){m.normalMap=o.material.normalMap;m.normalScale=new THREE.Vector2(.8,.8)}});return m}
 // cocoon on a wall cell, optional figure inside
@@ -27,7 +27,7 @@ export function spawner(pts,o={}){const S={t:0,n:0,max:o.max||5,every:o.every||1
 export const nearest=()=>{const C=G.C;let b=null;for(const e of G.alive())if(!e.inert&&(!b||dist(C.p,e)<dist(C.p,b)))b=e;return b};
 export const fmt=t=>{t=Math.max(0,Math.ceil(t));return Math.floor(t/60)+':'+String(t%60).padStart(2,'0')};
 // swap the on-foot set for a fresh drive set (keeps chapter state)
-export function clearForDrive(keep=[]){const C=G.C;for(const ch of[...C.g.children])if(!keep.includes(ch))ch.visible=false;G.LS.list.length=0;for(const e of C.en)e.obj.root.removeFromParent();C.en=[];C.allies.forEach(a=>a.gone=true);WD.W.colliders=[];WD.W.camBlock=[];WD.W.steam=[];C.act=null;C.goal=null;C.trk=false}
+export function clearForDrive(keep=[]){const C=G.C;for(const ch of[...C.g.children])if(!keep.includes(ch))ch.visible=false;G.LS.list.length=0;for(const e of C.en)e.obj.root.removeFromParent();C.en=[];C.allies.forEach(a=>a.gone=true);WD.W.colliders=[];WD.W.rcol=[];WD.W.camBlock=[];WD.W.steam=[];C.act=null;C.goal=null;C.trk=false}
 // small lit cockpit set for driver close-ups, built away from the level
 export function cockpit(x,z){const g=new THREE.Group();g.position.set(x,0,z);const D=G.pbr('panel',{color:0x3a3f44}),P=G.pbr('panel',{color:0x6a7076});
  const box=(w,h,d,m,px,py,pz)=>{const b=new THREE.Mesh(G.boxGeo(w,h,d,1,.03),m);b.position.set(px,py,pz);b.receiveShadow=true;g.add(b);return b};
