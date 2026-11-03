@@ -1,5 +1,5 @@
 // ===== CHAPTER 1 — DROP =====
-import * as G from './game.js?v=9';
+import * as G from './game.js?v=10';
 const {THREE,PI,lerp,sm,rnd,LV,PR,WD}=G;
 const BX=90; // troop bay location (off-road)
 const SEATS=[['apone',-1,-3,'r'],['hudson',-1,-1,'r'],['hicks',-1,1.4,'r'],['drake',-1,3,'r'],['vasquez',1,-1.6,'l'],['ripley',1,.6,'l'],['gorman',1,2.6,'l']];

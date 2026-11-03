@@ -1,6 +1,6 @@
 // ===== CHAPTER 7 — THE QUEEN'S LAIR =====
-import * as G from './game.js?v=9';
-import {resinDress,wallCocoons,spawner,fmt,TS} from './hive.js?v=9';
+import * as G from './game.js?v=10';
+import {resinDress,wallCocoons,spawner,fmt,TS} from './hive.js?v=10';
 const {THREE,PI,rnd,LV,PR,WD,dist}=G;
 const MAP7=["#####################",
 "#c.......c.Q.c.....c#",

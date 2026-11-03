@@ -1,6 +1,6 @@
 // ===== CHAPTER 4 — OPS SIEGE =====
-import * as G from './game.js?v=9';
-import {spawner,fmt,TS,sentryGun} from './hive.js?v=9';
+import * as G from './game.js?v=10';
+import {spawner,fmt,TS,sentryGun} from './hive.js?v=10';
 const {THREE,PI,rnd,LV,PR,WD,dist}=G;
 const MAP4=["#######################",
 "###########N###########",

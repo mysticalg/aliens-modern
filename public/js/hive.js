@@ -1,5 +1,5 @@
 // shared helpers for chapters 3-8: resin hive dressing, alien spawners, timers
-import * as G from './game.js?v=9';
+import * as G from './game.js?v=10';
 const {THREE,rnd,WD,dist}=G;
 export const TS=new URLSearchParams(location.search).has('fast')?.35:1;
 // biomechanical resin growing over walls: ribs, tubes and drips, instanced

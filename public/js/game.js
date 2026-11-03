@@ -1,11 +1,11 @@
 // Campaign runtime: input, over-the-shoulder controller, combat, AI, allies, drive mode, cutscenes, HUD, menu.
-import {THREE,Q,TOUCH,MOBILE,E,setQuality,canvas,scene,camera,hemi,flash,sun,keyL,rimL,muzzle,updateLights,resize,frameStat,render,LS} from './engine.js?v=9';
-import {pbr,plain,emiss,boxGeo,model,actor,Actor} from './assets.js?v=9';
-import {Alien,Hugger,Queen,egg} from './creatures.js?v=9';
-import * as WD from './world.js?v=9';import {W,CS,WH,solid,solidR,moveE,bfs,pathDir,los,rayWorld,clearWorld} from './world.js?v=9';
-import {FX,initFX,resetFX,updateFX,tracer,muzzleFlash,sparks,acidBurst,decal,flame,explosion,shake,steam,smokePuff,rain,updateRain} from './fx.js?v=9';
-import {audioInit,SFX,tone,noise,music,ambience} from './audio.js?v=9';
-import * as PR from './props.js?v=9';
+import {THREE,Q,TOUCH,MOBILE,E,setQuality,canvas,scene,camera,hemi,flash,sun,keyL,rimL,muzzle,updateLights,resize,frameStat,render,LS,renderer} from './engine.js?v=10';
+import {pbr,plain,emiss,boxGeo,model,actor,Actor} from './assets.js?v=10';
+import {Alien,Hugger,Queen,egg} from './creatures.js?v=10';
+import * as WD from './world.js?v=10';import {W,CS,WH,solid,solidR,moveE,bfs,pathDir,los,rayWorld,clearWorld} from './world.js?v=10';
+import {FX,initFX,resetFX,updateFX,tracer,muzzleFlash,sparks,acidBurst,decal,flame,explosion,shake,steam,smokePuff,rain,updateRain} from './fx.js?v=10';
+import {audioInit,SFX,tone,noise,music,ambience} from './audio.js?v=10';
+import * as PR from './props.js?v=10';
 export const PI=Math.PI,lerp=(a,b,k)=>a+(b-a)*k,cl=(v,a,b)=>Math.max(a,Math.min(b,v)),sm=x=>{x=cl(x,0,1);return x*x*(3-2*x)},rnd=Math.random;
 export const dist=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
 export const AUTO=Q.has('auto');
@@ -42,7 +42,13 @@ function newC(n){return{n,mode:'cut',t:0,pt:0,p:{x:0,z:0,ya:PI,pitch:0,hp:100,vi
 export function startCh(n){audioInit();for(const id of['menu','over'])$(id).style.display='none';if(document.pointerLockElement)document.exitPointerLock();
  C=newC(n);window.__game.C=C;for(const w in WPN)C.ammo[w]=WPN[w].mag;C.g=clearWorld();resetFX();rain(false);scene.fog.color.set(0x070a0c);scene.fog.density=.045;scene.background.set(0x020304);
  hemi.intensity=.3;sun.intensity=0;sun.castShadow=false;flash.intensity=0;keyL.intensity=0;rimL.intensity=0;camera.fov=60;camera.updateProjectionMatrix();
- LV[n].init();C.chapT=0;updHUD(true)}
+ LV[n].init();C.chapT=0;prewarm();updHUD(true)}
+// compile every shader variant the chapter will need (creatures, FX, shadows, post) before play, so the first spawn or flame does not hitch
+function prewarm(){try{const tmp=[new Alien(),new Hugger(),new Queen(),egg()].map(o=>o.root||o);const fw=new THREE.Vector3();camera.getWorldDirection(fw);tmp.forEach((r,i)=>{r.position.copy(camera.position).addScaledVector(fw,3+i);r.position.y=0;scene.add(r)});
+ const vis=[];scene.traverse(o=>{if((o.isMesh||o.isPoints||o.isSprite||o.isInstancedMesh)&&!o.visible){o.visible=true;vis.push(o)}});
+ const li=[flash,keyL,rimL,muzzle].map(l=>[l,l.intensity]);for(const[l]of li)l.intensity=Math.max(l.intensity,.001);
+ renderer.compile(scene,camera);render();
+ for(const o of vis)o.visible=false;for(const[l,v]of li)l.intensity=v;for(const r of tmp)scene.remove(r)}catch(e){console.warn('prewarm',e)}}
 export function env(o){if(o.fog!=null)scene.fog.density=o.fog;if(o.fogCol!=null){scene.fog.color.set(o.fogCol);scene.background.set(o.bg??o.fogCol)}if(o.hemi!=null)hemi.intensity=o.hemi;if(o.hemiCol!=null)hemi.color.set(o.hemiCol);
  if(o.sun!=null){sun.intensity=o.sun;if(o.sunCol)sun.color.set(o.sunCol)}if(o.rain!=null)rain(o.rain);C.wind=o.wind||0;ambience({rain:o.rain,wind:o.wind,hum:o.hum})}
 export function cut(list,next){C.mode='cut';for(const k in C.cast){const a=C.cast[k];if(a.gun&&a.gunMode=='aim'){a._gm='aim';a.gunMode='low';if(a.locoN&&a.locoN[1]=='Pistol_Idle_Loop'&&!a.curN)a.loco(a.locoN[0],'Idle_Loop',.2)}}C.cut={list,i:-1,u:0,next};nextShot();document.body.classList.add('cut');document.body.classList.remove('play');if(document.pointerLockElement)document.exitPointerLock()}
@@ -214,7 +220,7 @@ function updHUD(force){if(!C)return;const p=C.p;const wn=C.weaps[C.wi];$('obj').
   $('trkd').textContent=C.trkD<99?Math.round(C.trkD)+'m':'--m'}}
 // objective beacon in the world
 let beacon=null;function updBeacon(){if(!beacon){beacon=new THREE.Mesh(new THREE.CylinderGeometry(.35,.35,6,16,1,true),new THREE.MeshBasicMaterial({color:new THREE.Color(.2,1.2,.6),transparent:true,opacity:.12,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide}));scene.add(beacon)}
- const gl=C&&C.mode=='foot'?(C.act||C.goal):null;beacon.visible=!!gl&&C.showBeacon!==false;if(gl){beacon.position.set(gl.x,1.5,gl.z);beacon.material.opacity=.08+.05*Math.sin(C.t*2.5)}}
+ const gl=C&&C.mode=='foot'?(C.act||C.goal):null;beacon.visible=!!gl&&C.showBeacon!==false;if(gl){beacon.position.set(gl.x,1.5,gl.z);const cd=Math.hypot(camera.position.x-gl.x,camera.position.z-gl.z);const nf=Math.min(1,Math.max(0,(cd-2.5)/4));beacon.visible=beacon.visible&&nf>0;beacon.material.opacity=(.08+.05*Math.sin(C.t*2.5))*nf}}
 // ---------------- main update ----------------
 const _focus=new THREE.Vector3();
 export function update(dt){if(!C)return;C.t+=dt;

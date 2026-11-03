@@ -1,6 +1,6 @@
 // ===== CHAPTER 8 — SULACO =====
-import * as G from './game.js?v=9';
-import {fmt,TS} from './hive.js?v=9';
+import * as G from './game.js?v=10';
+import {fmt,TS} from './hive.js?v=10';
 const {THREE,PI,rnd,LV,PR,WD,dist}=G;
 const MAP8=["#################",
 "#......A........#",
@@ -49,7 +49,7 @@ LV[8]={init(){const C=G.C;G.env({fog:.018,fogCol:0x101418,hemi:.85,hemiCol:0xb8c
    {d:2.8,sub:'Ripley, teeth gritted, grips the claws tight. She will not let go.',cam:()=>({e:[L.x+Math.sin(L.ya)*1.6,2.4,L.z+Math.cos(L.ya)*1.6],c:[L.x,2.25,L.z],fov:34}),flash:30}],()=>{G.play('loader');this.stage(2)})},
  ending(){const C=G.C;const[ax,az]=WD.mk('A');
   G.cut([{d:3,sub:'The outer doors split open. The air goes with them in a roar.',upd:(u,dt)=>{hatch.position.x=ax+u*3;G.shake(.3)},cam:()=>({e:[ax+6,3,az+7],c:[ax,0,az+1],fov:46})},
-   {d:3,sub:'The queen claws for the edge — and is gone into the dark.',upd:(u,dt)=>{qn.root.position.y-=dt*6},cam:()=>({e:[ax+2,4,az+5],c:[ax,-2,az+1],fov:44})},
+   {d:3,sub:'The queen claws for the edge — and is gone into the dark.',upd:(u,dt)=>{if(u>.55)qn.root.position.y-=dt*(u-.5)*14},key:16,flash:45,cam:()=>{const q=qn.root.position,mx=(q.x+L.x)/2,mz=(q.z+L.z)/2;let dx=L.x-q.x,dz=L.z-q.z;const dl=Math.hypot(dx,dz)||1;dx/=dl;dz/=dl;const sd=Math.max(4.5,dl*.9);return{e:[mx-dz*sd,2.3,mz+dx*sd],c:[mx,Math.max(.4,q.y+1.6),mz],fov:50,face:new THREE.Vector3(L.x,2.25,L.z)}}},
    {d:3,sub:'The doors seal. Silence. Newt scrambles out from the plating and runs to her.',setup:()=>{qn.root.visible=false;G.place(rp,ax+2,az+6,PI*.9);rp.play('Idle_Loop',0);G.place(nw,ax+2.7,az+7.6,PI*1.1);nw.play('Jog_Fwd_Loop',0)},upd:(u,dt)=>{nw.root.position.z-=dt*.4},cam:()=>G.CU(rp,.85,.3,.02,32),flash:40},
    {d:3.2,sub:'Newt calls her "Mum". Ripley holds her and does not let go.',setup:()=>nw.play('Idle_Loop',.3),cam:()=>G.CU(nw,.5,.14,.03,24),flash:40},
    {d:3.4,sub:'Hypersleep. Newt asks if they can dream on the long way home. Ripley says yes — they both can.',setup:()=>{for(const a of[rp,nw])a.play('Sitting_Idle_Loop',.3)},cam:()=>G.CU(nw,.55,-.16,.03,26),flash:25}],G.winCh)},
