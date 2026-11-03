@@ -1,6 +1,6 @@
 // ===== CHAPTER 7 — THE QUEEN'S LAIR =====
-import * as G from './game.js?v=6';
-import {resinDress,wallCocoons,spawner,fmt,TS} from './hive.js?v=6';
+import * as G from './game.js?v=7';
+import {resinDress,wallCocoons,spawner,fmt,TS} from './hive.js?v=7';
 const {THREE,PI,rnd,LV,PR,WD,dist}=G;
 const MAP7=["#####################",
 "#c.......c.Q.c.....c#",
@@ -59,7 +59,7 @@ LV[7]={init(){const C=G.C;eggs=[];qe=null;G.env({fog:.055,fogCol:0x0c0a08,hemi:.
    {d:3,sub:'The cage climbs. Below, fire races through the hive.',upd:(u,dt)=>{C.pa.root.position.y+=dt*1.5},cam:u=>({e:[lx+2,1+u*3,lz+2],c:[lx,1+u*3.5,lz],fov:44})},
    {d:3.4,sub:'On the pad, Bishop and the dropship. They lift off as the processor goes up behind them.',setup:()=>{G.explosion&&G.explosion(new THREE.Vector3(lx,1,lz-10))},cam:u=>({e:[lx-4,2,lz+6],c:[lx,1.5,lz],fov:50}),key:30}],G.winCh)},
  step(dt){const C=G.C,p=C.p;if(C.mode!='foot')return;sp.step(dt);
-  if(C.stage==1){const left=G.alive().filter(e=>e.egg).length;C.scoreTxt='EGGS  '+left;if(!left)this.stage(2)}
+  if(C.stage==1){const eg=G.alive().filter(e=>e.egg);const left=eg.length;if(left){let b=eg[0];for(const e of eg)if(dist(p,e)<dist(p,b))b=e;const d=Math.max(.01,dist(p,b));C.goal=d>3.5?{x:b.x+(p.x-b.x)/d*3,z:b.z+(p.z-b.z)/d*3}:null}C.scoreTxt='EGGS  '+left;if(!left)this.stage(2)}
   else if(C.stage==2){C.scoreTxt='GUARDS  '+Math.max(0,9-(C.kills-C.kc));if(sp.n>=9&&!G.alive().length)this.stage(3)}
   else if(C.stage==3){C.scoreTxt='';if(dist(p,C.goal)<2.2)this.stage(4);else if(C.t>=C.endT)G.churt(999)}
   else C.scoreTxt=''}};
