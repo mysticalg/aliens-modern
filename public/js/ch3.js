@@ -1,6 +1,6 @@
 // ===== CHAPTER 3 — THE NEST =====
-import * as G from './game.js?v=8';
-import {resinDress,wallCocoons,spawner,fmt,clearForDrive,cockpit,TS} from './hive.js?v=8';
+import * as G from './game.js?v=9';
+import {resinDress,wallCocoons,spawner,fmt,clearForDrive,cockpit,TS} from './hive.js?v=9';
 const {THREE,PI,rnd,LV,PR,WD,dist}=G;
 const MAP3=["###################",
 "#S...c.......c...S#",

@@ -1,6 +1,6 @@
 // ===== CHAPTER 6 — ESCAPE =====
-import * as G from './game.js?v=8';
-import {resinDress,wallCocoons,spawner,fmt,TS} from './hive.js?v=8';
+import * as G from './game.js?v=9';
+import {resinDress,wallCocoons,spawner,fmt,TS} from './hive.js?v=9';
 const {THREE,PI,rnd,LV,PR,WD,dist}=G;
 const MAP6=["#########################",
 "#S.......#######.......J#",
