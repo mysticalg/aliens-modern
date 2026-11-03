@@ -11,3 +11,6 @@ An original, non-commercial fan homage. No assets, audio, dialogue or footage fr
 
 ## Ultra texture set (public/tex/hi/)
 2K CC0 PBR maps used by the Ultra preset: Poly Haven (aerial_rocks_02, dark_rock_02, corrugated_iron_02, rusty_metal_grid, concrete_floor_worn_001, blue_metal_plate) and ambientCG (MetalPlates006, DiamondPlate008C). All CC0 — no attribution required, credited with thanks.
+
+## Human characters
+- Microsoft Rocketbox Avatar Library — https://github.com/microsoft/Microsoft-Rocketbox — Microsoft — MIT licence. Used: Military_Male_01–06, Military_Female_01, Female_Adult_04, Female_Child_01, Business_Male_02, Medical_Male_01, Construction_Male_01. Converted to GLB in Blender; textures recoloured (olive fatigues, hair tints); animation retargeted at runtime from the CC0 Quaternius clips.

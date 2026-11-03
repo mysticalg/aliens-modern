@@ -1,10 +1,10 @@
-import {THREE,Q,E,resize,render,loadEnv,frameStat,renderer} from './engine.js?v=12';
-import {loadModels} from './assets.js?v=12';
-import {initFX} from './fx.js?v=12';
-import * as GM from './game.js?v=12';
-import './ch1.js?v=12';import './ch2.js?v=12';import './ch3.js?v=12';import './ch4.js?v=12';import './ch5.js?v=12';import './ch6.js?v=12';import './ch7.js?v=12';import './ch8.js?v=12';
+import {THREE,Q,E,resize,render,loadEnv,frameStat,renderer} from './engine.js?v=13';
+import {loadModels} from './assets.js?v=13';
+import {initFX} from './fx.js?v=13';
+import * as GM from './game.js?v=13';
+import './ch1.js?v=13';import './ch2.js?v=13';import './ch3.js?v=13';import './ch4.js?v=13';import './ch5.js?v=13';import './ch6.js?v=13';import './ch7.js?v=13';import './ch8.js?v=13';
 const $=id=>document.getElementById(id);
-const MODELS=['male','female','anims','hair_buzzed','hair_long','hair_simpleparted','hair_buns','hair_beard','hair_buzzedfemale','gun_rifle','gun_pistol','prop_crate','prop_crate_large','prop_barrel1','prop_locker','prop_desk_medium','prop_chair','prop_ammo','prop_shelves_widetall','prop_crate_tarp_large','prop_healthpack'];
+const MODELS=['male','female','anims','rb/Military_Male_02','rb/Military_Male_05','rb/Military_Male_01','rb/Military_Female_01','rb/Military_Male_03','rb/Military_Male_06','rb/Military_Male_04','rb/Female_Adult_04','rb/Female_Child_01','rb/Business_Male_02','rb/Medical_Male_01','rb/Construction_Male_01','hair_buzzed','hair_long','hair_simpleparted','hair_buns','hair_beard','hair_buzzedfemale','gun_rifle','gun_pistol','prop_crate','prop_crate_large','prop_barrel1','prop_locker','prop_desk_medium','prop_chair','prop_ammo','prop_shelves_widetall','prop_crate_tarp_large','prop_healthpack'];
 window.__errs=[];addEventListener('error',e=>window.__errs.push(String(e.message)));
 async function boot(){$('load').style.display='flex';resize();
  await Promise.all([loadEnv(),loadModels(MODELS,k=>{$('lbar').style.width=(k*100|0)+'%'})]);initFX();

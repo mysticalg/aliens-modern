@@ -1,11 +1,11 @@
 // Campaign runtime: input, over-the-shoulder controller, combat, AI, allies, drive mode, cutscenes, HUD, menu.
-import {THREE,Q,TOUCH,MOBILE,E,setQuality,canvas,scene,camera,hemi,flash,sun,keyL,rimL,muzzle,updateLights,resize,frameStat,render,LS,renderer} from './engine.js?v=12';
-import {pbr,plain,emiss,boxGeo,model,actor,Actor} from './assets.js?v=12';
-import {Alien,Hugger,Queen,egg} from './creatures.js?v=12';
-import * as WD from './world.js?v=12';import {W,CS,WH,solid,solidR,solidC,moveE,bfs,pathDir,los,rayWorld,clearWorld} from './world.js?v=12';
-import {FX,initFX,resetFX,updateFX,tracer,muzzleFlash,sparks,acidBurst,decal,flame,explosion,shake,steam,smokePuff,rain,updateRain} from './fx.js?v=12';
-import {audioInit,SFX,tone,noise,music,ambience} from './audio.js?v=12';
-import * as PR from './props.js?v=12';
+import {THREE,Q,TOUCH,MOBILE,E,setQuality,canvas,scene,camera,hemi,flash,sun,keyL,rimL,muzzle,updateLights,resize,frameStat,render,LS,renderer} from './engine.js?v=13';
+import {pbr,plain,emiss,boxGeo,model,actor,Actor} from './assets.js?v=13';
+import {Alien,Hugger,Queen,egg} from './creatures.js?v=13';
+import * as WD from './world.js?v=13';import {W,CS,WH,solid,solidR,solidC,moveE,bfs,pathDir,los,rayWorld,clearWorld} from './world.js?v=13';
+import {FX,initFX,resetFX,updateFX,tracer,muzzleFlash,sparks,acidBurst,decal,flame,explosion,shake,steam,smokePuff,rain,updateRain} from './fx.js?v=13';
+import {audioInit,SFX,tone,noise,music,ambience} from './audio.js?v=13';
+import * as PR from './props.js?v=13';
 export const PI=Math.PI,lerp=(a,b,k)=>a+(b-a)*k,cl=(v,a,b)=>Math.max(a,Math.min(b,v)),sm=x=>{x=cl(x,0,1);return x*x*(3-2*x)},rnd=Math.random;
 export const dist=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
 export const AUTO=Q.has('auto');
@@ -64,7 +64,7 @@ export function unlock(n){if(n>UNL){UNL=n;try{localStorage.setItem(SAVEK,String(
 // ---------------- cast / actors ----------------
 export function cast(name,who,extra){const a=actor(who,extra);C.g.add(a.root);C.cast[name]=a;return a}
 export function place(a,x,z,ya=0,y=0){a.root.position.set(x,y,z);a.root.rotation.y=ya;a.root.visible=true;return a}
-export function headPos(a){a.root.updateMatrixWorld(true);return a.bones.head?a.bones.head.getWorldPosition(new THREE.Vector3()):a.bones.Head.getWorldPosition(new THREE.Vector3())}
+export function headPos(a){a.root.updateMatrixWorld(true);const B=a.vb||a.bones;return B.head?B.head.getWorldPosition(new THREE.Vector3()):B.Head.getWorldPosition(new THREE.Vector3())}
 // face close-up camera: in front of the actor's face, slightly to the side
 export function CU(a,d=1.05,side=.28,dy=.02,fov=34){const h=headPos(a);const ya=a.root.rotation.y;const f=[Math.sin(ya),Math.cos(ya)],r=[-Math.cos(ya),Math.sin(ya)];
  return{e:[h.x+f[0]*d+r[0]*side,h.y+dy,h.z+f[1]*d+r[1]*side],c:[h.x,h.y-.02,h.z],fov,face:h}}
